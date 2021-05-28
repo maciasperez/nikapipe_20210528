@@ -1,0 +1,127 @@
+; Gather all the flux and NEFD information into a single save and .csv file
+; from all projects
+; V1 Lissajous scans only
+
+vall = 'V1Liss'
+k_faint = 1
+; or
+vall = 'V1cLiss'
+k_faint = 0
+
+for dothis = 1, 14 do begin ; 1 must be done first to init structure
+@Extract_fluxV1.scr
+endfor
+save,  file = '$SAVE/ExtractFlux_'+vall+ '.save', scanflux, /verb, /xdr
+
+
+; Evaluate the final fluxes for each source
+; Can start here
+vall = 'V1Liss'
+; or
+vall = 'V1cLiss'
+restore,  file = '$SAVE/ExtractFlux_'+vall+ '.save',  /verb
+; Keep only deep Lissajous
+;index = where( scanflux.exptime gt 200. and scanflux.err_flux_1mm gt 0, nindex)
+
+;all Lissajous
+index = where( scanflux.err_flux_1mm gt 0, nindex)
+print, nindex, ' scans retained'
+scf = scanflux[ index] 
+delvarx, scanflux
+
+gdsc = indgen( nindex)
+obj = strtrim( strupcase( scf[ gdsc].object), 2)
+iobjsort = sort( obj)
+indna = uniq( obj[iobjsort])
+nameobj = obj[ iobjsort[ indna]]
+nobj = n_elements( nameobj)
+print, nobj, ' objects found'
+; 44
+        ;; 1097 scans retained
+        ;;   71 objects found
+objflux = replicate( $
+       { scan:'', file: '', sitelong_deg:0D0, sitelat_deg:0D0, sitealt_m:0D0, $
+         operator:'', obsid: '', projid:'', day:'', scannum: 0, $
+         object:'', ra_deg: 0D0, dec_deg:  0D0, $
+         az_deg: 0D0, el_deg:0D0, parangle_deg:0D0, mjd: 0D0, $
+         date:'', lst_sec:0D0, exptime:0. , $
+         n_obs: 0, n_obsp:0, obstype:'', $
+         sysoff: '', nasx_arcsec:0., nasy_arcsec:0., $
+         xoffset_arcsec: 0., yoffset_arcsec: 0., $
+         switchmode: '', focusx_mm:0., focusy_mm:0., focusz_mm:0., $
+         pressure_hPa: 0., tambient_C:0., $
+         rel_humidity_percent: 0., windvel_mpers:0., $
+         tiptau225GHz:-1., tau1mm:-1., tau2mm:-1, $
+         powlawamp1mm:0., powlawamp2mm:0., powlawexpo1mm:0., powlawexpo2mm:0., $
+         skynoi1mm0:0.,skynoi1mm1:0.,skynoi1mm2:0.,skynoi1mm3:0., $
+         skynoi1mm4:0.,skynoi1mm5:0.,skynoi1mm6:0.,skynoi1mm7:0.,$
+         skynoi2mm0:0.,skynoi2mm1:0.,skynoi2mm2:0.,skynoi2mm3:0., $
+         skynoi2mm4:0.,skynoi2mm5:0.,skynoi2mm6:0.,skynoi2mm7:0., $
+         NEFD_TOI1mm:0., NEFD_map1mm:0., NEFD_TOI2mm:0.,  NEFD_map2mm:0., $
+         Flux_1mm:0., Err_Flux_1mm:0., Offset_X_1mm:0., $
+         Offset_Y_1mm:0., Flux_2mm:0., Err_Flux_2mm:0., $
+         Offset_X_2mm:0., Offset_Y_2mm:0., PipelineVersion:'', $
+         DecorMETHOD:''       }, nobj)
+ntagin = n_tags( objflux[0])
+
+
+
+;; prepare_jpgout, 10, ct = 39
+;; !p.multi = [0, 2, 2]
+k_silent = 1
+for iobj = 0, nobj-1 do begin
+   gf = where( strtrim( strupcase( scf.object), 2) eq nameobj[ iobj], ngf)
+   sf = scf[ gf]
+   if not keyword_set( k_silent) then begin
+      print, ''
+      print, '----------------------------------------'
+      print, iobj, ' '+sf[0].projid+' '+nameobj[ iobj]
+      print, sf.scan
+   endif
+; Fill in information
+   for itag = 0, ntagin-1 do objflux[iobj].(itag) = sf[0].(itag)
+   
+   IF ngf GT 1 THEN BEGIN
+      bestflux1mm = total( sf.flux_1mm/ sf.err_flux_1mm^2)/ $
+                    total( 1/ sf.err_flux_1mm^2)
+      ubestflux1mm = sqrt( 1./ $
+                           total( 1/ sf.err_flux_1mm^2))
+      bestflux2mm = total( sf.flux_2mm/ sf.err_flux_2mm^2)/ $
+                    total( 1/ sf.err_flux_2mm^2)
+      ubestflux2mm = sqrt( 1./ $
+                           total( 1/ sf.err_flux_2mm^2))
+   endif else begin
+      bestflux1mm = sf.flux_1mm
+      ubestflux1mm = sf.err_flux_1mm
+      bestflux2mm = sf.flux_2mm
+      ubestflux2mm = sf.err_flux_2mm
+   endelse
+   
+   objflux[ iobj].flux_1mm = bestflux1mm
+   objflux[ iobj].err_flux_1mm = ubestflux1mm
+   objflux[ iobj].flux_2mm = bestflux2mm
+   objflux[ iobj].err_flux_2mm = ubestflux2mm
+    
+   if not keyword_set( k_silent) then begin
+      print,bestflux1mm, ubestflux1mm, format = '(2F10.1)'
+      print,bestflux2mm, ubestflux2mm, format = '(2F10.1)'
+   endif
+;   if iobj mod 2 eq 1 then cont_plot, nostop = nostop
+endfor
+;;!p.multi = 0
+
+; Sort the output by project
+objflux = objflux[ sort( objflux.projid)]
+
+; Save the result into a csv file
+list = strjoin(tag_names( objflux[0])+',')
+for iobj = 0, nobj-1 do begin
+   aa =  ''
+   for itag = 0, ntagin-1 do aa = aa+string( objflux[ iobj].(itag))+','
+   list = [list, aa]
+endfor
+fluxfile = '$SAVE/Show_flux_'+vall+'.csv'
+write_file, fluxfile, list, /del
+spawn,'libreoffice '+ fluxfile+ ' &'
+
+

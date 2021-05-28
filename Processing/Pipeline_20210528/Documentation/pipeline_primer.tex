@@ -1,0 +1,137 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage{epsfig}
+\usepackage{latexsym}
+\usepackage{graphicx}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{xcolor}
+
+\topmargin=-1cm
+\oddsidemargin=-1cm
+\evensidemargin=-1cm
+\textwidth=17cm
+\textheight=25cm
+\raggedbottom
+\sloppy
+
+\definecolor{Blue}{rgb}{0.,0.,1.}
+\definecolor{LightSkyBlue}{rgb}{0.691,0.827,1.}
+\definecolor{Red}{rgb}{1.,0.,0.}
+\definecolor{Green}{rgb}{0.,1.,0.}
+\definecolor{Purple}{rgb}{0.5, 0., 0.5}
+\definecolor{Try}{rgb}{0.15,0.,1}
+\definecolor{Black}{rgb}{0., 0., 0.}
+
+%% %To get DRAFT accross all pages
+%% \usepackage{draftcopy}
+%% %To replace ``DRAFT'' by ``ON GOING''
+%% \draftcopyName{ON GOING}{150}
+
+\title{A NIKA2 IDL pipeline primer}
+\author{NIKA2 collaboration}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\abstract{The abstract.}
+
+
+\section{The Pipeline Philosophy}
+\begin{itemize}
+\item All the codes necessary to run the pipeline are under {\it
+  Processing/Pipeline}. Most of them are under {\it Processing/Pipeline/NIKA\_Pipe}.
+\item All parameters that condition the data reduction are gathered in the {\tt
+  param} structure, that is defined in {\tt nk\_default\_param.pro} and
+  initialized with default values.
+\item All the information gathered during the processing that needs to be passed
+  to other subroutines and that may be passed as output are gathered in the {\tt
+    info} structure.
+\item maps are gathered in the {\tt grid} structure, that is either passed in
+  input of the pipeline or initialized according to {\tt param} in {\tt
+    nk\_init\_grid.pro}.
+\item All the TOI's and associated flags, pointings etc.. are gathered in the
+  {\tt data} structure.
+\end{itemize}
+
+\newpage
+\section{nk.pro}
+
+The main pipeline routine is {\tt nk.pro}. It can be called as simply as:
+\begin{equation}
+  IDL> nk, scanID
+\end{equation}
+
+\noindent where scanID can be for example '20150213s264'\footnote{Single quotes are important, IDL
+does not accept double quotes for strings that start by a number.}. If you want
+to tailor the input parameters, then you'll have to edit a script and do
+typically:
+
+\begin{center}
+\begin{minipage}{10cm}
+{\it
+\noindent nk\_default\_param, param ; init the param structure\\
+param.map\_xsize = ... ; fill it with your favorite parameters\\
+param.map\_ysize = ...\\
+param.decor\_method = ...\\
+...\\
+nk, scanID, param=param ; call nk\\
+}
+\end{minipage}
+\end{center}
+
+Quick overview of {\tt nk}:
+\input{nk}
+
+\section{nk\_scan\_preproc.pro}
+
+This routines performs most of the operations that do not depend on
+decorrelation and filtering. It also computes the pointing of each individual
+kid ({\tt data.dra, data.ddec}) and the associated pixel address for the future
+projection ({\tt data.ipix}).
+
+Quick overview of {\tt nk\_scan\_preproc.pro}:
+
+\input{nk_scan_preproc}
+
+\section{nk\_scan\_reduce.pro}
+
+This routine performs decorrelation, filtering, computes the weights that will
+be affected to the samples for the projection.
+
+Quick overview of {\tt nk\_scan\_reduce.pro}:
+\input{nk_scan_reduce}
+
+\section{nk\_clean\_data\_3.pro}
+This routine performs all the decorrelation and filtering requested in {\tt
+  param}.
+Quick overview of {\tt nk\_clean\_data\_3.pro}:
+%\input{nk_clean_data_3}
+
+\section{nk\_projection\_4.pro}
+%\input{nk_projection_4}
+
+
+
+
+
+
+
+%% \begin{figure}
+%% \begin{center}
+%% \includegraphics[clip, angle=0, scale = 0.5]{beam_conventions.eps}
+%% \caption{
+%% Elliptical beam parameters definition. $\beta$ is the angle between
+%% the South/North axis and the $x$ axis of the focal plane. The beam is
+%% tilted w.r.t $x$ by an angle $\vartheta$. The detector is sensitive to a
+%% direction of polarization $\psi$. The gaussian FWHM in the directions
+%% $x$ and $y$ are resp. $2.35\sigma_x$ and $2.35\sigma_y$.}
+%% \label{fig:beam_params}
+%% \end{center}
+%% \end{figure}
+
+%----------------------------------------------------------------------------------------
+\begin{thebibliography}{}
+\end{thebibliography}
+
+\end{document}

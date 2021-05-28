@@ -1,0 +1,128 @@
+; Modified from FXD scr/Pro/ExtractFlux_pipe.scr
+; Extract fluxes from project point sources.
+; Extract flux info from all scans
+; Do all sources of a project at a time
+sav = 'v2'
+restore, file = '$SAVE/Log_Iram_tel_' + sav + '.save'
+nflist = n_elements( scan)
+ntagin = n_tags( scan[0])
+
+; Make an output structure
+if keyword_set( k_make_out_str) then begin
+scanflux = replicate( $
+       { scan:'', file: '', sitelong_deg:0D0, sitelat_deg:0D0, sitealt_m:0D0, $
+         operator:'', obsid: '', projid:'', day:'', scannum: 0, $
+         object:'', ra_deg: 0D0, dec_deg:  0D0, $
+         az_deg: 0D0, el_deg:0D0, parangle_deg:0D0, mjd: 0D0, $
+         date:'', lst_sec:0D0, exptime:0. , $
+         n_obs: 0, n_obsp:0, obstype:'', $
+         sysoff: '', nasx_arcsec:0., nasy_arcsec:0., $
+         xoffset_arcsec: 0., yoffset_arcsec: 0., $
+         switchmode: '', focusx_mm:0., focusy_mm:0., focusz_mm:0., $
+         pressure_hPa: 0., tambient_C:0., $
+         rel_humidity_percent: 0., windvel_mpers:0., $
+         tiptau225GHz:0., tau1mm:!undef*1., tau2mm:!undef*1., $
+         powlawamp1mm:0., powlawamp2mm:0., powlawexpo1mm:0., powlawexpo2mm:0., $
+         skynoi1mm0:0.,skynoi1mm1:0.,skynoi1mm2:0.,skynoi1mm3:0., $
+         skynoi1mm4:0.,skynoi1mm5:0.,skynoi1mm6:0.,skynoi1mm7:0.,$
+         skynoi2mm0:0.,skynoi2mm1:0.,skynoi2mm2:0.,skynoi2mm3:0., $
+         skynoi2mm4:0.,skynoi2mm5:0.,skynoi2mm6:0.,skynoi2mm7:0., $
+         NEFD_TOI1mm:0., NEFD_map1mm:0., NEFD_TOI2mm:0.,  NEFD_map2mm:0., $
+         Flux_1mm:0., Err_Flux_1mm:0., Offset_X_1mm:0., $
+         Offset_Y_1mm:0., Flux_2mm:0., Err_Flux_2mm:0., $
+         Offset_X_2mm:0., Offset_Y_2mm:0., PipelineVersion:'', $
+         DecorMETHOD:''       }, nflist)
+; Fill in information
+         for itag = 0, ntagin-1 do scanflux.(itag) = scan.(itag)
+         ntagout = n_tags( scanflux[0])
+         tagnout = tag_names( scanflux[0])
+         for is = 0, nflist-1 do begin 
+           a = strmid( scan[is].(1), 16, strpos( scan[is].(1), '-imb')-16)
+           nusc = zeropadd( strmid( a, 9), 4)
+            scanflux[is].scan = strmid( a, 0, 9)+nusc
+         endfor
+endif
+
+
+; give project_name 
+gdsc = where( strtrim(scan.projid, 2) eq project_name and $
+              strupcase( scan.obstype) eq 'LISSAJOUS' and $
+              scan.tau1mm gt 0 and scan.skynoi1mm4 ne 0, ngdsc)
+obj = strtrim( strupcase(scan[ gdsc].object), 2)
+iobjsort = sort( obj)
+indna = uniq( obj[iobjsort])
+nameobj = obj[ iobjsort[ indna]]
+nobj = n_elements( nameobj)
+; To start do
+idone = replicate( (-1), nobj)
+inored = replicate( 0, nobj)
+inomap = replicate( 0,  nobj)
+
+for iobj = 0, nobj-1 do begin
+   source = nameobj[ iobj]       ;Name of the source
+   version = vall + strtrim( iobj, 2) ; done on my computer
+   print, 'Start source '+source+ ' of the project '+project_name
+   print, 'Obj # ', iobj, ' out of ', nobj
+   ind = where( obj eq source, nind)
+   if nind eq 0 then message, 'That should not happen, check object names'
+   scan_num_list = scan[ gdsc[ ind]].scannum
+   day_list = scan[ gdsc[ ind]].day
+   scl = bytarr( nind)
+   if badscan[0] ne '0' then begin
+      match, day_list+'s'+strtrim( scan_num_list, 2), badscan, ia, ib
+      scl[ ia] = 1
+   endif
+   if idone[ iobj] ge 0  $
+     then scl[0:idone[ iobj] < (nind-1)] = 1 
+; scans already checked but leave the last valid one in
+   gsc = where( scl eq 0, ngsc)
+   if ngsc eq 0 then begin
+      print, 'Nothing to be reduced with that source '+ source
+      continue
+   endif
+   scan_num_list = scan_num_list[ gsc]
+   day_list = day_list[ gsc]
+; Determine if it is a strong source by the integration time
+   if ngsc gt 1 then medinteg = median( scan[ gdsc[ind[gsc]]].exptime) else $
+      medinteg = scan[ gdsc[ind[gsc]]].exptime
+
+name4file = STRJOIN(STRSPLIT(source,/EXTRACT),'_') ;Name without space but '_'
+
+;;------- The directory where to save the results
+project_dir = !nika.save_dir+'/Project_winter2014/'+ project_name
+direxist = FILE_TEST(project_dir, /DIRECTORY)
+
+noscanred = inored[ iobj]
+if noscanred eq 1 then message, /info, 'Only maps are done, after one scan'
+
+if inomap[ iobj] eq 0 then begin
+  dir = project_dir+'/'+version+'/'
+  filename = 'logfile_all_scans.csv'
+; contains all info of each scan including NEFDs but not xoff nor yoff
+; but not combined fluxes.
+
+; dir= dir+ source_name
+; filename= flux_source_0.csv
+;    contains the flux of each scan and the combined map flux
+; As well as the xoff, yoff
+  flstr =  read_csv( dir+filename, header = hdr)
+; print,hdr
+;; # Scan_number Source RA Dec Scan_type Integration_type Median_elevation
+;; Paralactic_angle Pressure Temperature Humidity Wind_Velocity Tau1mm Tau2mm
+;; Tau225 Fatmo1mm_0.001-0.003Hz Fatmo1mm_0.003-0.01Hz Fatmo1mm_0.01-0.03Hz
+;; Fatmo1mm_0.03-0.1Hz Fatmo1mm_0.1-0.3Hz Fatmo1mm_0.3-1Hz Fatmo1mm_1-3Hz
+;; Fatmo1mm_3-10Hz Fatmo2mm_0.001-0.003Hz Fatmo2mm_0.003-0.01Hz
+;; Fatmo2mm_0.01-0.03Hz Fatmo2mm_0.03-0.1Hz Fatmo2mm_0.1-0.3Hz Fatmo2mm_0.3-1Hz
+;; Fatmo2mm_1-3Hz Fatmo2mm_3-10Hz NEFD_TOI1mm NEFD_map1mm NEFD_TOI2mm NEFD_map2mm
+;; Flux_1mm Err_Flux_1mm Offset_X_1mm Offset_Y_1mm Flux_2mm Err_Flux_2mm
+;; Offset_X_2mm Offset_Y_2mm Pipeline Version Decor METHOD
+  match, flstr[0].(0), scanflux.scan, ia, ib
+  for itag = ntagin, ntagout-1 do begin
+     u = where( tagnout[ itag] eq strupcase(strcompress( hdr, /rem)), nu)
+     if nu eq 1 then scanflux[ib].(itag) = flstr[0].(u[0])[ia] else $
+        print, tagnout[ itag], ' has no counterpart in the struct'
+  endfor
+endif                           ; end case of no map at all for that object
+endfor
+
+

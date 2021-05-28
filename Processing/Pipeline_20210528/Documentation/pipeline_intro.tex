@@ -1,0 +1,389 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage{epsfig}
+\usepackage{latexsym}
+\usepackage{graphicx}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{xcolor}
+
+%-----------------------------------------
+% Pour accepter les lettres accentuees de clavier azerty
+% sans les \'e (utile) pour tapper directement en azerty 
+% et ou faire passer aspell -c --lang=fr bidon.tex
+%\usepackage[latin1]{inputenc}
+%------------------------------------------
+
+
+%\topmargin=-3cm
+\topmargin=-1cm
+\oddsidemargin=-1cm
+\evensidemargin=-1cm
+\textwidth=17cm
+%\textheight=27cm
+\textheight=25cm
+\raggedbottom
+\sloppy
+
+\definecolor{Blue}{rgb}{0.,0.,1.}
+\definecolor{LightSkyBlue}{rgb}{0.691,0.827,1.}
+\definecolor{Red}{rgb}{1.,0.,0.}
+\definecolor{Green}{rgb}{0.,1.,0.}
+\definecolor{Purple}{rgb}{0.5, 0., 0.5}
+\definecolor{Try}{rgb}{0.15,0.,1}
+\definecolor{Black}{rgb}{0., 0., 0.}
+
+\title{Overview of the NIKA(2) IDL pipeline}
+\author{N. Ponthieu et al}
+
+\begin{document}
+\maketitle
+
+\abstract{This note gives a big picture of how the IDL pipeline works. It
+  complements the wiki, in particular the FAQ page.}
+
+%% \begin{figure}
+%% \begin{center}
+%% \includegraphics[clip, angle=0, scale = 0.5]{beam_conventions.eps}
+%% \caption{
+%% Elliptical beam parameters definition. $\beta$ is the angle between
+%% the South/North axis and the $x$ axis of the focal plane. The beam is
+%% tilted w.r.t $x$ by an angle $\vartheta$. The detector is sensitive to a
+%% direction of polarization $\psi$. The gaussian FWHM in the directions
+%% $x$ and $y$ are resp. $2.35\sigma_x$ and $2.35\sigma_y$.}
+%% \label{fig:beam_params}
+%% \end{center}
+%% \end{figure}
+
+
+\section{Introduction}
+
+The current IDL pipeline was built on an early version developped for
+NIKA1. Many of its modules are common to the quicklook analysis and to lab
+characterization. We here give an overview of its structure and of the main
+parameters to allow users to have a better intuition of what they actually do
+when they change the main parameters without needing to go deep inside the
+routines.
+
+\section{Disclaimer}
+
+Except for a few exceptions that we wish to correct when we encounter them, all
+the routines of the pipeline are located in {\tt Processing/Pipeline/NIKA\_Pipe}.
+
+\section{The main characters: {\tt param}, {\tt info}, {\tt data}, {\tt kidpar}}
+
+These are the four main input/output of the pipeline routines.
+
+\subsection{param}
+{\tt param} is a structure that contains all the input paramters of the
+pipeline. They will be recorded in the final map fits header. {\tt param}
+is created by {\tt nk\_default\_param.pro} and its parameters can then be changed
+by the user. A more complete description of these parameters is given in \ref{se:parameters}.
+
+\subsection{info}
+{\tt info} is a structure that gathers all the required information about the
+scan, e.g. its scan type (polarized or not, OTF, Lissajou, Pointing.., Ra-Dec or Az-El), source
+name, map center coordinates, telescope information... and also information that
+are derived during the processing, such as the opacities, or the measured fluxes
+and noises on the final maps.
+
+{\tt info} has three special fields:
+\begin{itemize}
+\item {\tt status}: if it's not 0, it means that an error happened during the
+  data processing. if {\tt status = 1}, it is a major crash and the routine
+  immediately exists, if it is something else than 1, it is considered as a
+  warning only. This allows to process
+  many scans at the same time and to be immune at crashes on some problematic
+  scans
+\item {\tt error\_message}: when an error occurs and an error message is
+  produced and stored in this field.
+\item {\tt routine}: contains the name of the routine that issued the error message.
+\end{itemize}
+
+When the pipeline is launched on a series of scan, if errors occur, they are
+logged in an ascii file called {\tt error\_XX.dat} in {\tt param.project\_dir}.
+
+
+\subsection{data}
+
+{\tt data} is the structure that contains the timelines and their associated
+quanties, such as subscan index, time, individual kid pointings, flags, weights for the map making...
+
+
+\subsection{kidpar}
+{\tt kidpar} is the structure that contains all the kid related information that
+are not time dependent, such as their pointing offsets, types, fwhm,
+calibration... This structure depends on the run. A dedicated routine, {\tt
+  nk\_get\_kidpar\_ref.pro} finds the relevant kidpar for a given run and passes
+it to the pipeline.\\
+
+So far, the available {\tt kidpar.type} of kids are:
+\begin{itemize}
+\item 1: this kid is used for the derivation of e.g. common modes, the
+  decorrelation and is projected on the final map.
+\item 2: this kid is off resonance and is not used for common mode or
+  decorrelation (unless explicitely requested by a relevant {\tt
+    param.decor\_method}) and is not projected.
+\item 3: This kid is a so called ``dark kid'', is not used for common mode or
+  decorrelation (unless explicitely requested by a relevant {\tt
+    param.decor\_method}) and is not projected.
+\item 4 or higher: this kid is either double or has been discarded for some
+  other reason. It is not used for common mode or
+  decorrelation (unless explicitely requested by a relevant {\tt
+    param.decor\_method}) and is not projected.
+\end{itemize}
+
+
+\section{Typical algorithm}
+
+Let's assume you want to produce a map of {\it scan='20150123s128'}, the simpler
+way is to type in IDL:\\
+{\tt IDL> nk, '20150123s128'}\\
+
+{\tt nk.pro} has initialized {\tt param} and {\tt info} according to {\tt
+  nk\_default\_param.pro} and {\tt nk\_default\_info.pro}, processed the data
+accordingly, displayed the results and saved them into {\tt
+  param.output\_dir/results.save}. If you look into {\tt nk}, you'll see that
+all the action is shared between three subroutines: {\tt nk\_scan\_preproc.pro},
+{\tt nk\_scan\_reduce.pro} and {\tt nk\_projection\_3.pro}.
+
+\subsection{nk\_scan\_preproc.pro}
+
+This routine reads the raw data from the disk, selects the relevant fraction of
+the scan after the tuning at the beginning and before the tunings in the end,
+flags and interpolates glitches, flags out speeds with anomalous pointing
+coordinates, corrects if possible for pointing inaccuracies, computes kids
+individual pointing, calibrates the data.
+
+Everything that happens in this routine does not depend on the decorrelation,
+filtering or projection parameters.
+
+
+\subsection{nk\_scan\_reduce.pro}
+
+This routine takes the calibrated but ``dirty'' data from {\tt
+  nk\_scan\_preproc.pro} and cleans them so that they can be projected on a
+map.\\
+
+The heart of {\tt nk\_scan\_reduce.pro} is the decorrelation and filtering of
+the data in {\tt nk\_clean\_data.pro}. There are two extreme ways to clean the
+data, depending on the kind of source  that is observed: point like or diffuse.
+
+\subsubsection{Point sources and decorrelation}
+
+In the case of a point source, or a source that is small compared to the matrix
+imprint on the sky, the best way to correct for the atmosphere and correlated
+electronic noise is to build a template of all the correlated emissions and
+regress out this template from each kid timeline. To build this template without
+being biased by the source, we defined a region around it whose radius is given
+by {\tt param.decor\_cm\_dmin} (=27.75 arcsec by default). At each time, we
+build a common mode template using an average of all the kids that are outside
+this region at this time. We then regress each kid timeline against this
+template outside the region, and subtract the common mode everywhere, including
+in the region.
+
+Depending on the user's choice of parameters, the commmon mode is not computed
+exactly in the same way (See sect.~\ref{se:parameters}, but the principle remains.
+
+\subsubsection{Diffuse sources and decorrelation}
+
+If the observed source is large compared to the matrix size, we cannot mask it
+and build a common mode like in the previous section because no kid will lie
+outside the masked region. The case of diffuse emission is the most challenging
+for NIKA(2).
+
+While we are working on the adaptation to the pipeline of performant map making
+algorigthms (Scanamorphos and SanePic), we
+have designed temporary work arounds. First, the idea is to derive the common
+mode everywhere, regress it out of timelines and build a first estimate of the
+source. This first estimate can then be backprojected into the timelines,
+subtracted, and an improved estimate of the common mode can be derived. This
+iterative process should improve the final maps compared to a brute force
+projection but has not been qualified completely yet.
+
+In the case of SZ clusters observation, we use the 1mm channel has an atmosphere
+monitor and regress it out from the 2mm. This process allows to subtract the
+atmosphere on all scales while living most of the large scale SZ emission
+intact.
+
+In specific cases, we can merge several approaches, doing a first projection and
+then masking its brightest parts before iterating the map making process.
+
+
+\subsubsection{Remarks on decorrelation and map making}
+
+As for now, there is no standard way to optimally process any kind of
+observation. If the user has a priori knowledge on the source, he can taylor the
+pipeline parameters to optimize the final maps. In any case, we rely on
+simulations to validate the pipeline transfer function.
+
+\subsection{nk\_projection\_3.pro}
+
+This routine handles the projection of the clean data output by {\tt
+  nk\_scan\_reduce.pro}. So far, it is a simple inverse variance weighted data
+average per pixle, with a Nearest Grid Point in the flat sky approximation.
+
+
+\section{Main parameters}
+\label{se:parameters}
+
+All parameters are defined and briefly documented in {\tt
+  nk\_default\_param.pro}. Here is a summary of the main ones with their default
+(def) and recommended (rec.) values. The default value are most of the time set for convenience and/or
+robustness in lab or quicklook conditions. The recommended values are those that
+usually give the best offline data reduction.
+
+
+
+\begin{itemize}
+\item \underline{\tt flag\_uncorr\_kid = 0 (def) = 1 (rec)} The correlation of all kids to oneanother is
+  computed and gives a median kid to kid correlation. If this parameter is set
+  to 1, all the kids that are on average less correlated to the other ones are
+  suspected to show anomalous behaviour or extra noise and will be discarded
+  from the final decorrelation and map.
+
+\item \underline{\tt flag\_sat = 0 (def) = 1 (rec)} If set to 1, all kids whose $I$,$Q$
+  angle exceeds {\tt param.flag\_sat\_val=3.d0(def,rec)} is considered as
+  saturated and is not used.
+
+\item \underline{\tt flag\_ovlap = 0 (def) = 1 (rec)} if set to 1, by a look at the
+  resonnances, most ``double'' kids are discarded from the analysis.
+
+\item \underline{\tt flag\_oor = 0 (def) = 1 (rec)} if set to 1, the pipeline discards kids
+  that seem out of resonance.
+  
+\item \underline{\tt decor\_cm\_dmin = 27.75, (def), (rec)} Minimum distance to
+  the source for a sample to be declared "off source" and not used to compute
+  the decorrelation common mode at time $t$.
+
+\item \underline{\tt decor\_per\_subscan = 1, (def), (rec)} : if set to 1, a
+  common mode is computed and subtraced per subscan rather than on the entire
+  scan.
+
+\item \underline{\tt decor\_method = 'COMMON\_MODE', (def)} 'Common\_mode' means
+  that the common mode is computed without masking the
+  source. 'Common\_mode\_kids\_out' means that the common mode is computed only
+  using kids outside the masked region. The masked region is defined in {\tt
+    grid.mask} and leads to {\tt data.off\_source = 0} on the masked region, 1
+  outside the masked region. ``common\_mode\_one\_block'' means that the
+  template is built using only the kids that are most correlated to the current one.
+
+\item \underline{\tt decor\_elevation = 1, (def), (rec)}  Set to 1 to decorrelate
+  also from elevation variations
+
+\item \underline{\tt median\_common\_mode\_per\_block = 1, (def), (rec)} Set to 0 to
+  compute the median common mode that is used for cross-calibration on all kids. If set to 1, the median common
+  mode is computed using only kids from the block. This parameter is active only
+  if {\tt param.decor\_method = 'COMMON\_MODE\_ONE\_BLOCK'}.
+
+\item \underline{\tt corr\_block\_per\_subscan = 0, (def), (rec)} Set to 1 to
+  recompute the blocks of correlated kids per subscan (provided
+  {\tt param.decor\_per\_subscan} is set and {\tt param.decor\_method =
+    'COMMON\_MODE\_ONE\_BLOCK'}.
+
+\item \underline{\tt n\_corr\_block\_min = 15, (def), (rec)}  Minimum number of
+  kids used to derive the common mode, in order of maximum correlation if {\tt
+    param.decor\_method = 'COMMON\_MODE\_ONE\_BLOCK'}.
+\item \underline{\tt nsigma\_corr\_block = 2, (def), (rec)} Once the block or
+  correlated kids is defined, any other kid correlated with those of the block
+  at less than nsigma\_corr\_bloc is added to the block if {\tt
+    param.decor\_method = 'COMMON\_MODE\_ONE\_BLOCK'}.
+
+\item \underline{\tt polynomial = 0, (def), (rec)} Set to some degree /= 0 to
+  subtract a polynomial per kid, per subscan or per scan depending on {\tt
+    param.decor\_per\_subscan}
+
+\item \underline{\tt interpol\_common\_mode = 1, (def), (rec)} Set to 1 to interpolate potential holes in the derived common mode.
+
+%%          ;;---------- Filtering parameters
+\item \underline{\tt line\_filter = 0, (def), 1 (rec)} Set to 1 to detect and
+  notch filter noise lines (e.g. from pulse tubes).
+\item \underline{\tt line\_filter\_width = 2.264962d0, (def), (rec)}  [Hz], width
+  used to detect noise lines as excess over the average power spectrum.
+\item \underline{\tt line\_filter\_nsigma = 4.d0, (def), (rec)} Threshold to detect noise lines.
+\item \underline{\tt line\_filter\_freq\_start = 1.d0, (def), (rec)} Start to look for noise lines above this freq (Hz).
+\item \underline{\tt bandpass = 0, (def), (rec)}  Set to 1 to perform a bandpass
+  on the timelines.
+\item \underline{\tt freqlow = 0.d0, (def), (rec)} Minimum frequency of the bandpass.
+\item \underline{\tt freqhigh = 0.d0, (def), (rec)} Maximum frequency of the bandpass.
+
+%%          ;;---------- Weigth parameters
+\item \underline{\tt w8\_per\_subscan = 0, (def), (rec)} Set to 1 to compute
+  projection weights for each subscan indepedently. The weights are the inverse
+  variance of the TOI computed outside the masked region.
+\item \underline{\tt map\_bg\_var\_w8 = 1, (def), (rec)}  Set to 1 to weight the coaddition of scans by the variance computed on the map instead of on TOI's
+\item \underline{\tt kill\_noisy\_sections = 0, (def), (rec)} Set to 1 to discard
+  the most noisy sections of timelines (use only in the presence of very weak
+  sources and with extreme care since this creates non linearity).
+\item \underline{\tt kill\_noise\_nsigma = 3.d0, (def), (rec)} Threshold used to discard noisy sections of timelines
+\item \underline{\tt nsigma\_jump = 4.d0, (def), (rec)} To flag jumps in the data.
+
+%%          ;;---------- Zero level parameters
+\item \underline{\tt set\_zero\_level\_full\_scan = 0, (def), (rec)} Set to 1 to
+  define a zero level per timeline on the entire scan. The average of the
+  timeline outside the masked region is subtracted.
+\item \underline{\tt set\_zero\_level\_per\_subscan = 1, (def), (rec)} Same as
+  above, but subscan by subscan.
+
+%%          ;;---------- Map parameters
+\item \underline{\tt fine\_pointing = 0, (def), 1 (rec)} Set to something non zero to use actual vs commanded positions.
+\item \underline{\tt imbfits\_ptg\_restore =  0, (def), (rec)} (for Run 8 data
+  only). Set to 1 to use the pointing from elvin (ie included in the raw nika data), 1 means that we use the antenna imbfits pointing.
+\item \underline{\tt naive\_projection = 1, (def), (rec)} Means flat sky
+  approximation, nearest grid point.
+\item \underline{\tt map\_reso = 4d0, (def), (rec)} ; Resolution of the output
+  maps in arcsec.
+\item \underline{\tt map\_xsize = 400d0, (def), (rec)} ; total width of the
+  output maps in arcsec.
+\item \underline{\tt map\_ysize = 400d0, (def), (rec)} ; total height of the
+  output maps in arcsec.
+\item \underline{\tt map\_proj = 'RADEC', (def), (rec)} Or ``azel'', or ``nasmyth''
+\item \underline{\tt map\_center\_ra = !values.d\_nan, (def), (rec)}  ; output map
+  center Ra in degrees. If set to NaN, then it is automatically taken from the AntennaIMBfits.
+\item \underline{\tt map\_center\_dec = !values.d\_nan, (def), (rec)} ; output map
+  center Dec in degrees. If set to NaN, then it is automatically taken from the AntennaIMBfits.
+\item \underline{\tt do\_fpc\_correction = 0, (def), (rec)} ; set to 1 to apply
+  (az,el) pointing corrections. If these pointing corrections do not exist in
+  Processing/PointingCorrections, then nothing is done.
+
+%%          ;;---------- Calibration
+\item \underline{\tt do\_opacity\_correction = 1, (def), (rec)} Set to 0 to bypass the opacity estimation and correction.
+
+\item \underline{\tt project\_dir = !nika.plot\_dir, (def), (rec)} Directory that will contain all the preproc and scan results of a given project
+
+\item \underline{\tt version = '1', (def), (rec)} Version of the data processing
+  that you might want to change along with parameters or pipeline revisions.
+
+\item \underline{\tt output\_dir = !nika.plot\_dir, (def), (rec)} Where results per scan are saved
+\item \underline{\tt up\_dir = !nika.plot\_dir, (def), (rec)}  Directory where we put the Unprocessed Files
+\item \underline{\tt preproc\_dir = !nika.plot\_dir, (def), (rec)} Where .save with pre-processed data are.
+
+\item \underline{\tt glitch\_width = 100, (def), (rec)} Number of samples to
+  define a window on which outlyers are considered as glitches, flagged out and interpolated.
+\item \underline{\tt glitch\_nsigma = 5.d0, (def), (rec)} Threshold to declare an
+  outlyer to be a glitch.
+
+\item \underline{\tt delete\_all\_windows\_at\_end = 0, (def), (rec)} Set to 1 to remove all plots windows (useful when nk is launched on many scans)
+
+\item \underline{\tt pointing\_accuracy\_tol = 2.d0, (def), (rec)} Tolerance on the azimuth sine fit and the actual ofs\_az in lissajous mode to discard the start/end slews
+
+\item \underline{\tt speed\_tol = 5.d0, (def), (rec)} Tolerance on the regularity
+  of the instantaneous scanning speed (arcsec/s). Samples for which speed
+  exceeds the average speed +- this tolerance are not projected.
+
+\item \underline{\tt nsample\_min\_per\_subscan = 50, (def), (rec)} If non zero, any subscan with less samples than this parameter will not be projected.
+
+\item \underline{\tt fourier\_opt\_sample = 0,  (def), (rec)} ; set to 1 to
+  optimize the legnth of data for Fourier transforms (highly recommended in case
+  of Fourier filtering).
+
+\item \underline{\tt math = "PF" (def), (rec)} ``PF'' or ``RF'' depending on which conversion
+  from $I$, $Q$, $dI$, $dQ$ to total power you want to use.
+
+\end{itemize}
+
+
+%----------------------------------------------------------------------------------------
+\begin{thebibliography}{}
+\end{thebibliography}
+
+\end{document}

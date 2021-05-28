@@ -1,0 +1,132 @@
+; Do all projects with Lissajous
+; Start from Test_pipe11.scr
+; Redo all reductions with better subtraction of systematics
+;   4 modes at AzEl modulation frequencies, 4 modes at twice those frequencies
+;   1 common mode, 1 common mode-squared (non-linearity), 1 linear drift
+      ; source position may vary for strong sources, strong sources in azel
+; Dothis numerotation changed
+; SAME as Test_pipe12.scr
+;   except for kidpar updated by NP 205_v2 and
+;   Lissajous filling + pointing flagging improved in
+;   nika_pipe_antenna2pointing_2 and nika_pipe_corpointing_2
+;   V2 moved to V3
+; Just set to the project
+;for dothis = 13, 15 do begin ; 1 for first project, 2, 3, etc... or do  a loop
+;dothis =  12
+; or do loop
+; for dothis=1, 13 do begin
+; Don't forget to specify vall and k_faint
+; k_faint=1 for faint source mode
+; V2 : use the new pipeline
+
+azel = 0 ; except for Pluto or planets or test of syste
+d_min = 20.0  ; take a larger area for Eps Eri?
+delvarx, k_idone
+size_map_x = 250.0  ; default size
+size_map_y = 250.0
+reso = 4. ; pixel size in arcsec
+;k_silent = 1
+; filtering factors are taken into account
+; for k_faint=1 filtered data
+; (factors are undone for NEFD, flux and flux errors)
+;;;ffi1mm = 0.70D0 not used in nk_
+;;;ffi2mm = 0.56D0
+
+case dothis of
+   1: begin
+      project_name = '118-13'   ; Pluto
+      azel = 1  ; azel for Pluto scans
+      badscan = ['20140220s166',  '20140220s170']  ; 166:annoying thermal glitch
+   end
+   2: begin
+      project_name = '173-13'   ; Eps Eri
+      badscan = ['20140220s259'] ;             ; example: [ '20140224s43'] 
+      d_min = 40.0  ; larger exclusion zone
+
+   end
+   3: begin
+      project_name = '174-13'   ; HD48370 debris disk
+       badscan = '0'             ; example: [ '20140224s43'] 
+
+   end
+   4: begin
+      project_name = 't21'   ; Nika team
+      badscan = ['20140227s168', '20140227s64', '20140219s14',  $
+                 '20140220s286',  '20140223s282']
+
+   end
+   5: begin
+      project_name = '226-13'   ; GRB
+       badscan = ['20140226s354', '20140228s32'] ; jump fo28s32 ???
+
+   end
+   6: begin
+      project_name = '230-13'   ; Weak by Wang High-redshift sources
+      badscan = ['20140225s103']             ; example: [ '20140224s43'] 
+
+   end
+   7: begin
+      project_name = '231-13'   ; Weak  Omont Hatlas
+       badscan = ['20140227s35', '20140227s36',  '20140227s37'] ; Mars does not work
+
+   end
+   8: begin
+      project_name = '232-13'   ; Dole
+       badscan = ['20140223s72']             ; example: [ '20140224s43'] 
+      size_map_x = 350.0
+      size_map_y = 350.0
+
+   end
+   9: begin
+      project_name = '234-13'   ; Bethermin
+      badscan = ['20140224s43']
+
+   end
+   10: begin
+      project_name = '237-13'   ; NIKA SZ (pointing sources only)
+      badscan = ['20140222s78']             ; example: [ '20140224s43'] 
+
+   end
+   11: begin
+      project_name = '239-13'   ; Bian LyAlpha
+       badscan = ['20140223s189']
+; Uranus 23s189 has a pb with atm subtraction
+   end
+   12: begin
+      project_name = '240-13'   ; Ivison Omont's project
+      badscan = ['20140226s183']             ; example: [ '20140224s43'] 
+      size_map_x = 350.0
+      size_map_y = 350.0
+   end
+   13: begin
+      project_name = '151-13'   ; Bizzochi Pre-stellar core Extended source
+      badscan = ['']             ; example: [ '20140224s43'] 
+      d_min = 40.0  ; larger exclusion zone
+      size_map_x = 350.0
+      size_map_y = 350.0
+   end
+   14: begin
+      project_name = '193-13'   ; Israel's galaxy
+       badscan = ['20140226s298']             ; example: [ '20140224s43'] 
+      d_min = 40.0  ; larger exclusion zone
+      size_map_x = 350.0
+      size_map_y = 350.0
+   end
+   else: begin
+      print, 'Define project !!!'
+      return
+   end
+endcase
+
+; Main program is in Pipeline/Modules
+case k_faint of 
+ 1 : begin   ; First option
+@nk_pipe_liss_run8.scr
+ end
+ 0 : begin   ; Non agressive Decorr, Only bright sources
+;@nk_pipe_liss_bright.scr
+ end
+ else: message, 'k_faint must be set to 0, 1'
+endcase
+
+end

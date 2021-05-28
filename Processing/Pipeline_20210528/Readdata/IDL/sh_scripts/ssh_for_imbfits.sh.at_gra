@@ -1,0 +1,14 @@
+#!/bin/bash                                                                                                                                                                    
+ssh -t -t t21@mrt-lx3 <<EOF                                                                                                                                       
+#!/bin/bash
+PATH=$PATH:/ncsServer/mrt/ncs/bin:/ncsServer/mrt/ncs/tools
+export PATH 
+#export PATH=$PATH:/ncsServer/mrt/ncs/bin:/ncsServer/mrt/ncs/tools
+# echo "PATH: $PATH"sion: may12, executable tree, x86_64-debian6-gfortran
+export PYTHONPATH=/ncsServer/mrt/ncs/lib/python:$PYTHONPATH
+#setenv PYTHONPATH /ncsServer/mrt/ncs/lib/python:$PYTHONPATH 
+echo $PATH
+echo $PYTHONPATH
+./produce_nika_imbfits.sh $1 $2 $3                                                                                                                            
+exit
+EOF                                                                                                                                                                               

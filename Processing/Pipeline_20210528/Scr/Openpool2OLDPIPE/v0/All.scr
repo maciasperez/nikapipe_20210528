@@ -1,0 +1,183 @@
+; All projects (most of them done with v6098)
+; All data put onto
+; /mrt-lx1/mrt/ncs/data/datastreams/nika/NIKA_OP2_V0/
+
+cd, '$NIKA_SOFT_DIR/'+'Pipeline/Scr/Openpool2OLDPIPE/'
+.r 048-14/g110_op2.pro
+.r 048-14/g114_op2.pro
+.r 048-14/g149_op2.pro
+
+g110_op2  ; done
+g114_op2  ; done
+g149_op2  ; done
+
+cd, '$NIKA_SOFT_DIR/'+'Pipeline/Scr/Openpool2OLDPIPE/'
+; Test
+;;.r v0/060-14/epsi_eri_op2.pro
+;; epsi_eri_op2 ; done
+; Real Script
+.r 060-14/epsi_eri_op2.pro
+epsi_eri_op2 ; 13s54 does not work
+;% NIKA_PIPE_MAP: No pixel with more than 2 hits at 240GHz/1mm ?!
+; ok now v6109
+
+cd, '$NIKA_SOFT_DIR/'+'Pipeline/Scr/Openpool2OLDPIPE/'
+.r 047-14/sdc24p489_op2.pro  
+.r 047-14/sdc18p888_op2.pro
+.r 047-14/g34_4_op2.pro
+
+sdc24p489_op2  ;done
+sdc18p888_op2  ;done
+;;;g34_4_op2      ; BD NOK remove bad scans, BD2 NOK CGplot error Don't do it (pointing source)
+
+cd, '$NIKA_SOFT_DIR/'+'Pipeline/Scr/Openpool2OLDPIPE/'
+.r 056-14/ic1396a_4_op2.pro
+.r 095-14/m99_op2.pro
+
+ic1396a_4_op2 ; done OK
+m99_op2 ; done OK
+
+cd, '$NIKA_SOFT_DIR/'+'Pipeline/Scr/Openpool2OLDPIPE/'
+.r 048-14/g82_op2.pro
+.r 048-14/g93_op2.pro
+.r 048-14/g219_op2.pro
+.r 048-14/g155_op2.pro
+.r 048-14/g159_op2.pro
+.r 048-14/g157_op2.pro
+.r 048-14/g151_op2.pro
+
+
+g82_op2 ; BD pb: REMOVE_BAD_SCANS, BD2
+g93_op2 ; done OK
+g219_op2 ; done OK
+g155_op2 ; BD NOK iter0 only
+g159_op2 ; Done OK
+g157_op2 ; Done OK nice off-center strong source!
+g151_op2 ; Done OK
+
+
+cd, '$NIKA_SOFT_DIR/'+'Pipeline/Scr/Openpool2OLDPIPE/'
+.r 097-14/iizw40_op2.pro
+.r 097-14/um311_op2.pro
+.r 097-14/ngc2366_op2.pro
+.r 097-14/mrk1089_op2.pro
+.r 097-14/ic10_op2.pro
+
+iizw40_op2 ; done
+um311_op2 ; BD failed
+ngc2366_op2 ; Done but no signal
+mrk1089_op2 ; done
+ic10_op2 ; BD failed
+
+cd, '$NIKA_SOFT_DIR/'+'Pipeline/Scr/Openpool2OLDPIPE/'
+.r 098-14/ngc5194_op2.pro
+.r 098-14/ngc3351_op2.pro
+.r 098-14/ngc0628_op2.pro
+
+ngc5194_op2 ; done; strong gradient
+ngc3351_op2 ; NOK 19s43 % NIKA_PIPE_MAP: No pixel with more than 2 hits at 240GHz/1mm ?!
+
+ngc0628_op2 ; TBD ; NOK
+
+
+
+;;Launch all the sources of project 049-14
+cd, '$NIKA_SOFT_DIR/'+'Pipeline/Scr/Openpool2OLDPIPE/'
+.r 049-14/generic_049_14_op2.pro
+generic_049_14_op2, '2917'                         ;;Done
+generic_049_14_op2, '2970'                         ;;Done
+generic_049_14_op2, '3151'                         ;;Done
+generic_049_14_op2, '3710'                         ;;Done
+generic_049_14_op2, '3822'                         ;;Done
+generic_049_14_op2, '3823'                         ;;Done
+generic_049_14_op2, '3835'                         ;;Done
+generic_049_14_op2, '3892'                         ;;Done
+;;generic_049_14_op2, '4029' ;; Not done: Variable is undefined: ERR_COEFF_2MM.
+                            ;% Execution halted at: NIKA_PIPE_NEFD
+generic_049_14_op2, '4396'                         ;;Done
+generic_049_14_op2, '4732'                         ;;Done
+generic_049_14_op2, '5021'                         ;;Done
+generic_049_14_op2, '5114' ;; no data for scan 18s378
+;;;generic_049_14_op2, '6265'                         ;;Unreliable, extremely poor conditions
+;;generic_049_14_op2, '6265'  ;; No pixel with more than 2 hits at 140GHz/2mm ?!
+;;generic_049_14_op2, '6315';; Not done: Variable is undefined: ERR_COEFF_2MM.
+
+
+; Grb
+;
+cd, '$NIKA_SOFT_DIR/'+'Pipeline/Scr/Openpool2OLDPIPE/'
+.r 115-14/grb1449_op2.pro
+.r 115-14/grb0938_op2.pro
+
+grb1449_op2    ; Done OK
+grb0938_op2    ; Done OK
+
+
+; Make a synthetic pdf per source
+stdir =  '/home/desert/Data/NIKA2014R10/Plots/NIKA_OP2_V0/'
+cd,stdir
+outdir = '/home/desert/Data/NIKA2014R10/Plots/'
+ls_unix, '.', dir, /silent
+ndir = n_elements( dir)
+for idir = 0, ndir-1 do begin
+  cd, stdir+dir[idir]
+  ls_unix, '.', source, /silent
+  nsource = n_elements( source)
+  for is = 0, nsource-1 do begin
+     cd, stdir+dir[idir]+'/'+source[is]
+     ls_unix, '.', iter, /silent
+     if file_test( 'iter1', /dir) then begin
+        cd,  stdir+dir[idir]+'/'+source[is]+'/iter1'
+        ls_unix, '.', file, /silent
+        good = where( strmatch( file, '*flux_1mm*')+ $
+                      strmatch( file, '*flux_2mm*')+ $
+                      strmatch( file, '*SNR_1mm*')+ $
+                      strmatch( file, '*SNR_2mm*'), ngood)
+        if ngood lt 4 then stop
+        file = file[good]
+        command = 'convert -adjoin '+ strjoin(file+' ') + $
+                  outdir+strmid(file[0], 0, strlen(file[0])- 12)+'total.pdf'
+          print, command
+
+        spawn,  command,  res
+        print,  res
+     endif else begin
+        if file_test( 'iter0', /dir) then begin
+           cd,  stdir+dir[idir]+'/'+source[is]+'/iter0'
+           ls_unix, '.', file, /silent
+           good = where( strmatch( file, '*flux_1mm*')+ $
+                         strmatch( file, '*flux_2mm*')+ $
+                         strmatch( file, '*SNR_1mm*')+ $
+                         strmatch( file, '*SNR_2mm*'), ngood)
+           if ngood lt 4 then print,  file else begin
+              file = file[good]
+              command = 'convert -adjoin '+ file[0]+' '+file[1]+' '+ $
+                        file[2]+' '+file[3]+' '+ $
+                        outdir+strmid(file[0], 0, strlen(file[0])- 12)+'total.pdf'
+              print, command
+              spawn,  command,  res
+              print,  res
+           endelse 
+        endif else begin
+           ls_unix, '.', file, /silent
+           good = where( strmatch( file, '*flux_1mm*')+ $
+                         strmatch( file, '*flux_2mm*')+ $
+                         strmatch( file, '*SNR_1mm*')+ $
+                         strmatch( file, '*SNR_2mm*'), ngood)
+           if ngood lt 4 then stop
+           file = file[good]
+           command = 'convert -adjoin '+ file[0]+' '+file[1]+' '+ $
+                     file[2]+' '+file[3]+' '+ $
+                     outdir+strmid(file[0], 0, strlen(file[0])- 12)+'total.pdf'
+           print, command
+           spawn,  command,  res
+           print,  res
+        endelse
+     endelse   
+     
+  endfor
+endfor
+
+
+;        print, 'Check these directories '+ dir[idir]+'/'+source[is]+ iter
+

@@ -1,0 +1,76 @@
+; Single entry point to reduce the 1st open pool Nika Feb 2014 observations
+; Completed on 31/05/2014 on bambini
+; Now starting on sami/observer
+
+; For most Lissajous scans use
+vall = 'V1Liss'
+k_faint = 1
+for dothis = 1, 14 do begin
+@AllScanLissPipeV1.scr
+endfor
+
+; Need to do all pointing Lissajous on strong sources
+vall = 'V1cLiss'
+k_faint = 0
+for dothis = 1, 14 do begin
+@AllScanLissPipeV1.scr
+endfor
+
+; Do Lissajous scans for faint sources too with the strong source mode
+; the k_faint=0 is replayed after having changed AllScanLissPipeV1.scr
+; to allow for all sources.
+; k_faint=2 can be run if V1cLiss directories are erased (from k_faint=1 run)
+vall = 'V1cLiss'
+k_faint = 2 
+dothis = 1
+@AllScanLissPipeV1.scr
+
+vall = 'V1cLiss'
+k_faint = 2 
+dothis = 2
+@AllScanLissPipeV1.scr
+
+vall = 'V1cLiss'
+k_faint = 2 
+dothis = 3
+@AllScanLissPipeV1.scr
+
+vall = 'V1cLiss'
+k_faint = 2 
+dothis = 13
+@AllScanLissPipeV1.scr
+
+vall = 'V1cLiss'
+k_faint = 2 
+dothis = 14
+@AllScanLissPipeV1.scr
+
+; Otherwise for FSL3A OTF in  240-13 do:
+version = 'V1otf'
+dayproc = 22
+.r 240-13/240-13_fls3_v1.pro
+
+version = 'V1otf'
+dayproc = 23
+.r 240-13/240-13_fls3_v1.pro
+
+version = 'V1otf'
+dayproc = 25
+.r 240-13/240-13_fls3_v1.pro
+
+version = 'V1otf'
+dayproc = 26
+.r 240-13/240-13_fls3_v1.pro
+
+version = 'V1otf'
+dayproc = 28
+.r 240-13/240-13_fls3_v1.pro
+
+; The galaxy NGC1569 for Israel OTF only
+version = 'V1otf'
+.r 193-13/193-13_v1otf.pro
+
+; The galactic region IC1396A OTF
+version = 'V1otf'
+.r 166-13/166-13_v1.pro
+

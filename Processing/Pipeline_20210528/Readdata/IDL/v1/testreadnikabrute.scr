@@ -1,0 +1,145 @@
+; Avant de lancer IDL se mettre sur le repertoire readdata
+; Mettre a jour le path dans compile_read_nika et read_nika_brute qui sont dans readdata 
+
+idl
+compile_read_nika
+
+
+file = "/Users/archeops/NIKA/Data/Z_2012_11_19_22h13m53_0196_Crab_t" 
+list_data = "sample  A_t_utc  B_t_utc  I  Q  dI  dQ      RF_didq   F_tone    dF_tone    "
+list_detector = lindgen(100) + 10
+print, "TOTAL SAMPLE LU :        ",READ_NIKA( file,param_c,param_d,data,list_data= list_data,list_detector=list_detector)
+help , param_d , /struct
+help , data , /struct
+print , data.sample
+
+#-------------------------------------------------------------------
+
+file = "/Users/archeops/NIKA/Data/SampleErreurElvin/reprocessed_files/X_2015_01_28_16h53m29_0129_T_Uranus"
+print, "TOTAL SAMPLE LU :        ",READ_NIKA( file,param_c, param_d,data,no_data=1,silent=1)
+
+list_data = "sample  A_t_utc  B_t_utc  I  Q  dI  dQ      RF_didq   F_tone    dF_tone    "
+list_detector = lindgen(10) + 10
+print, "TOTAL SAMPLE LU :        ",READ_NIKA( file,param_c,param_d,data,list_data= list_data,list_detector=list_detector)
+help , param_d , /struct
+help , data , /struct
+print , data.sample
+print, "TOTAL SAMPLE :  ",READ_NIKA_BRUTE( file,param_c,kidpar,data)
+
+
+ list_data="sample  ofs_X  ofs_Y   I   Q  RF_didq retard  49 F_TONE DF_TONE"                                     
+; file="/Users/macias/DataMatrice/Y_2013_01_11_11h20m38_0003_I"
+; file="/Users/archeops/NIKA/Data/Y6_2013_01_25/Y_2013_01_25_11h27m00_0001_I"
+file="/Volumes/Backup/NIKA/Run5_Data/skydips/Z_2012_11_22_03h02m42_0022_DIY-Ti_I"
+
+#------------------------  test   bolo  +  martin pupplet  --- (fichiers dans archeops 11)   ------
+
+list_data="sample SYNCHRO  bra_mpi  v_bolo ds_pha ds_qua "                                     
+file = "/Users/archeops/NIKA/Data/Y6_2013_03_08/Y_2013_03_08_13h10m31_0011_T"
+print, "TOTAL SAMPLE LU :        ",READ_NIKA_BRUTE( file,param_c, kidpar,data,list_data= list_data)
+plot , data[10:283440].bra_mpi, data[10:283440].V_bolo[1]         
+plot , data[10:283440].bra_mpi, data[10:283440].DS_PHA[1]         
+
+#------------------------  test   carte 2 boites kid campagne 2012  -------------------------------
+
+list_data="sample  ofs_X  ofs_Y   I   Q  RF_didq  F_tone DF_tone retard  49 "                                     
+file = "/Users/archeops/NIKA/Data/data_z33/Z_2012_11_12_22h17m50_0025_Uranus_I"
+file="/Users/archeops/NIKA/Data/Y_2013_11_14_22h24m38_0231_O_Uranus" 
+print, "TOTAL SAMPLE LU :        ",READ_NIKA_BRUTE( file,param_c, kidpar,data,list_data= list_data)
+plot , (data.rf_didq)[10,*], /xs ,/ys
+
+
+#------------------------  test   carte kid au labo   -------------------------------
+
+file = "/Users/archeops/NIKA/Data/Y6/Y6_2013_03_01/Y_2013_03_01_16h45m15_0000_t"
+list_data="sample  ofs_X  ofs_Y   I   Q  RF_didq retard  49 "                                     
+file = "/Users/archeops/NIKA/Data/Y_11/Y_2013_01_11_11h20m38_0003_I"
+print, "TOTAL SAMPLE LU :        ",READ_NIKA_BRUTE( file,param_c, kidpar,data,list_data= list_data)
+plot , (data.rf_didq)[10,*], /xs ,/ys
+
+
+
+#------------------------  test   liste de toutes les structures en sortie   -------------------------------
+
+print, "TOTAL SAMPLE LU :        ",READ_NIKA_BRUTE( file,param_c, kidpar,data,list_data="all",nb_detecteurs_lu=50)
+help,data,/str
+help,kidpar,/str
+
+file = "/Users/archeops/NIKA/Data/Y11/Y11_2013_03_31/Y_2013_03_31_10h40m16_0000_t "
+print, "TOTAL SAMPLE LU :        ",READ_NIKA_BRUTE( file,param_c, kidpar,data,list_data= "all")
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              .r do_reduce_map
+
+
+#------------------------  nika run7  otf map   -------------------------------
+compile_read_nika
+list_data="sample  ofs_X  ofs_Y   I   Q  RF_didq retard  0 "                                     
+file = "/Users/archeops/NIKA/Data/Y9_2013_11_14_comp10/Y_2013_11_14_05h47m39_0023_O_Mars"
+file = "/Users/archeops/NIKA/Data/Y9_2013_11_14_comp10/Y_d013_11_14_05h47m39_0023_O_Mars"
+#file = "/Users/archeops/NIKA/Data/Y9_2013_11_14_comp8/Y_c013_11_14_05h47m39_0023_O_Mars"
+
+list_data="all "                                     
+print, "TOTAL SAMPLE LU :        ",READ_NIKA( file,param_c, kidpar,data,list_data= list_data)
+
+plot , (data.rf_didq)[10,*], /xs ,/ys
+plot , (data.rf_didq)[11,8000:10000], /xs ,/ys
+
+
+
+
+compile_read_nika
+file = "/Users/archeops/NIKA/Data/X_2013_12_19_14h11m47_0000_T"
+
+list_data ="sample t_mac synchro sy_flag sy_per sy_pha Bra_mpi ofs_X ofs_Y"  
+list_data = list_data + "Paral Az El MJD_int MJD_dec MJD_dec2 LST Ra Dec t_elvin ofs_Az ofs_El ofs_Ra ofs_Dec MJD rotazel " 
+list_data = list_data + "year month day scan subscan scan_st obs_st size_x size_y nb_sbsc step_y speed tau "
+list_data = list_data + "antMJD_int antMJD_dec antLST antxoffset antyoffset antAz antEl "
+list_data = list_data + "antMJDf_int antMJDf_dec antactualAz antactualEl anttrackAz anttrackEl "
+list_data = list_data + "C_t_utc D_t_utc   "
+list_data = list_data + "I Q dI dQ RF_didq F_tone dF_tone "
+
+print, "TOTAL SAMPLE LU :        ",READ_NIKA( file,param_c, kidpar,data,list_data= list_data)
+
+plot , (data.antmjdf_dec)[*], /xs ,/ys
+
+w=where( (data.antmjdf_dec)[*] GE  0.7)
+nw = 
+plot , (data.antmjdf_dec)[w], /xs ,/ys
+
+#--- ecart en secondes entre le mjd elvin et le mjd antenna  -->  -0.60
+plot , ((data.mjd)[w]-ulong((data.mjd)[0]) - ((data.antmjd_dec)[w])) *86400 ,/xs,/ys
+
+#--- ecart en secondes entre le temps kid et le mjd antenna   ---  1.47 
+plot ,  (data.C_t_utc)[w] - ((data.antmjd_dec)[w]) *86400 ,/xs,/ys
+
+#--- ecart en secondes kid entre 2 points successifs   
+plot ,  (data.C_t_utc)[w] - (data.C_t_utc)[shift(w,1)] ,/xs,/ys
+
+
+
+#------------------------  nika run5  test  f_tone et df_tone  -----------------
+compile_read_nika
+list_data="sample  ofs_X  ofs_Y   I   Q  RF_didq F_tone DF_tone retard  0 "                                     
+file = "/Users/archeops/NIKA/Data/Y_2013_06_11_19h08m47_0159_I_DIY-Tip"
+print, "TOTAL SAMPLE LU :        ",READ_NIKA( file,param_c, kidpar,data,list_data= list_data)
+plot , (data.rf_didq)[12,*], /xs ,/ys
+plot , (data.dF_tone)[12,*], /xs ,/ys
+
+
+#------------------------  nika run7  test  coordonnees  -----------------
+compile_read_nika
+pi = 3.1415926535
+a=3600.*180./pi
+list_data="sample  ofs_X  ofs_Y  ofs_Az  ofs_El antxoffset antyoffset antactualAz antactualEl retard  0 "                                     
+file = "/Users/archeops/NIKA/Data/X_2014_01_09_01h47m37_0025_O_orionbar"
+print, "TOTAL SAMPLE LU :        ",READ_NIKA( file,param_c, kidpar,data,list_data= list_data)
+plot , (data.ofs_Az)[*],(data.ofs_El)[*], /xs ,/ys
+plot , a*(data.ofs_X)[*],a*(data.ofs_Y)[*], /xs ,/ys
+plot , a*(data.antxoffset)[*],a*(data.antyoffset)[*], /xs ,/ys
+plot , (data.antactualAz)[*],(data.antactualEl)[*], /xs ,/ys
+
+
+#--------------------  polar run7
+compile_read_nika
+list_data="sample  ofs_X  ofs_Y  ofs_Az  ofs_El C_position C_synchro  retard  0 "                                     
+file = "/Volumes/linuxnikadata/raw_X10/X10_2014_01_22/X_2014_01_22_16h09m14_0050_T_Uranus"
+print, "TOTAL SAMPLE LU :        ",READ_NIKA( file,param_c, kidpar,data,list_data= list_data)

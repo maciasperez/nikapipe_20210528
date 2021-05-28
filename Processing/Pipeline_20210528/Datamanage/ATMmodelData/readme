@@ -1,0 +1,13 @@
+This files were computed using the ATM model with the following
+assumptions:
+observatory pico
+atm 2009
+atm%profile%humidity 25.0
+ATM%PROFILE%TYPE "midlatwinter"
+forward_eff 0.90     ! Just to put a realistic value.
+airmass 1.0          ! Roughly 90 deg. elevation
+gain_image 0.0       ! Gain...intended for heterodyne receivers
+trec 0.0             ! Receiver Temperature (K)
+The data are ordered in 4 columns consisting of:
+
+FREQUENCY TAU_TOT tau_h2o tau_o2

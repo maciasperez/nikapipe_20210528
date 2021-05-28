@@ -1,0 +1,16 @@
+; Init part that must be adapted to each run
+source = 'All'
+obstype = 'Pointing'
+mapsize = 600.                  ; arcsec
+mapreso = 4.                    ; arcsec
+nsubscan = 5
+avoid_list = ['20170419s179'] ; Failure of nk_set0level
+restore,'$NIKA_SOFT_DIR/Pipeline/Datamanage/Logbook/' + $
+        'Log_Iram_tel_N2R10_v0.save'
+indscan = nk_select_scan( scan, source, obstype, nscans, $
+                          avoid = avoid_list, /all_sources)
+scanall = scan
+scan = scan[indscan]
+scan_list = scan.day + 's' + strtrim(scan.scannum,2)
+print,  'found ' + strtrim(string(nscans), 2) + ' in total '
+;for isc = 0, nscans-1 do print, isc, '  ', scan_list[ isc], ' ', scan[ isc].n_obs, ' ', scan[ isc].object

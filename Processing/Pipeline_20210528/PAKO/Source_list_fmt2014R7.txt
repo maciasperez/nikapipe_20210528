@@ -1,0 +1,197 @@
+; List of sources to be observed by NIKA run 7 during the Jan 2014
+; polar and pipeline run
+; Here formatted list to be read by Read_source_list.scr for ingestion by NCS
+; Planets can be observed:  (Strong signal and Calibration)
+; Not needed here. In IRAM catalog 
+; Coordinates in J2000
+; v1 starts from 2013 run6 catalog
+; Process with  .r $SCR/Pro/Read_source_list.scr 
+
+
+; Radio sources from IRAM catalog
+; -------------------------------
+3C84,      03h19m48.154s,  +41d30'42.16",  =0316+413, RNeriPdB, PdBM
+3C111,     04h18m21.28s,   +38d01'35.8",     PdBM, 2Jy 1-2mm, z=0.0485 
+OJ287,     08h54m48.9s,    +20d06'31",     Highly Variable. S(3.3) = 2.9 - 8.3 Jy.
+0923+392,  09h27m03.01s,   +39d02'20.7",   RNeri PdB standard, PdBM = 4C+39.25 S(3.3) = 1.3 - 3.2 Jy
+B0954+658, 09h58m47.26s,   +65d33'54.70",  F2mm~1Jy
+B1039+811, 10h44m23.10s,   +80d54'39.30",  F2mm~1Jy
+3C273,     12h29m06.70s,   +02d03'08.6",   Variable. S(3.3) = 10 - 20 Jy., PdBM
+3C279,     12h56m11.1s,    -05d47'22",     Variable. S(3.3) = 6.4 - 8.2 Jy.
+3C286,     13h31m08.3s,    +30d30'33",     Polar Calibrator, 1.3mm:0.2-0.4Jy, 3mm:0.8-1Jy
+B1418+546, 14h19m46.600s,  +54d23'14.80",  NIKA run1 S(2)=1.2 Jy
+3C345,     16h42m58.8s,    +39d48'37",     Variable. S(3.3) = 5.6 - 7.7 Jy., PdBM
+NRAO530,   17h33m02.7s,    -13d04'50",     Variable. S(3.3) = 5 - 7 Jy.
+1749+096,  17h51m32.8s,    +09d39'00.7",   RNeris PdB standard ~3 Jy?
+B1800+440, 18h01m32.310s,  +44d04'21.90",  NIKA run1 S(2)=0.1Jy
+3C380,     18h29m31.8s,    +48d44'46",     S(3.3) = 1.0 - 2.8 Jy. 
+CygA,      19h59m28.35s,   +40d44'02.1",   3C405 3 sources
+3C454.3,   22h53m57.7s,    +16d08'54",     S(2)=S(1)=6Jy variable? RNeriPdB, PdBM
+
+
+;
+; Secondary calibrators from the report by Lisenfeld et al. 2000
+; created by CK, 14-Apr-2012
+; Add from this list to the already available list (CWLEO=IRC10216)
+; W3OH is already in the iram-J2000.sou but leave it here for good measure
+W3OH,       02h27m03.8653s,   +61d52'24.829" , secondary calibrator 1mm
+GL490,      03h27m38.8834s,   +58d47'00.719" , secondary calibrator 1mm
+L1551IRS5,  04h31m34.1541s,   +18d08'05.163" , secondary calibrator 1mm
+HLTAU,      04h31m38.4437s,   +18d13'57.978" , secondary calibrator 1mm
+CRL618,     04h42m53.3448s,   +36d06'52.750" , secondary calibrator 1mm
+ALFORI,     05h55m10.2737s,   +07d24'25.393" , secondary calibrator 1mm
+G45.1,      19h13m22.0201s,   +10d50'53.392" , secondary calibrator 1mm
+K3-50A,     20h01m45.70s,     +33d32'43.518",
+MWC349,     20h32m45.44s,     +40d39'36.8",  S2mm=1.55 Jy (Secondary Calibrator) RNeriPdB
+CRL2688,    21h02m18.7458s,   +36d41'37.780" , secondary calibrator 1mm
+NGC7027,    21h07m01.59s,     +42d14'10.183",
+LKH234,     21h43m06.7208s,   +66d06'54.618" , secondary calibrator 1mm
+CepA,       22h56m17.87s,     +62d01'49.8",  secondary calibrator (AGB star)
+NGC7538,    23h13m45.33s,     +61d28'10.6",  secondary calibrator (Uc HII)
+
+;Galactic sources ; strong source, complex map. Test of mapping procedures.
+;------------------
+SN1181,       02h05m37.88s,  +64d49'40.7",  =3C58, SNR, 10x10 arcmin map, need 1sigma=4mJy/beam @2mm ie 100s per 2x2 map. See Haley Gomez (Herschel data) Changed coordinates
+NGC1333,      03h29m10.5s,   +31d13'30.9",  5x5 arcmin map, centered on IRAS 4A in Perseus, expect 1Jy at 1mm
+Crab,         05h34m31.95s,  +22d00'52.1",  SNR, Map should be 450x450", 200Jy totalflux, look at index variations, Bandiera
+Horsehead,    05h41m00.0s,   -02d27'00.0",  6x6 arcmin horsehead nebula PHBlant map with Mambo exists, Max Flux is low (50mJy/beam at 1mm)
+NGC2023,      05h41m26.73s,  -02d18'18.5",  (LBS 36 SM2) (SM1 is within 2 beams) Launhardt96, Peak1.3mm= 0.30 Jy, Total = 3.45 Jy (55x70)
+OrionLBS23SM, 05h46m08.81s,  -00d10'39.9",  Peak1.3mm=1.32 Jy, Total 4.80 (70x110") Launhardt96
+NGC2071,      05h47m04.84s,  +00d21'45.1",  LBS 8SM Peak1.3mm=2.27Jy, Total 11.1Jy (70x80") Launhardt96
+IRC10216,     09h47m57.41s,  +13d16'43.6",  F1.1mm=3.764 Jy 
+SgrB2_FIR1,   17h47m19.93s,  -28d22'18.3",  galactic center (Gordon 1993)
+G34.262,      18h50m47.0s,   +01d10'49", 
+G34.3,        18h53m18.50s,  +01d14'58.20", LSR 0.000 FL 12.50
+G35.191,      18h59m14.5s,   +01d08'46", 
+W49,          19h08m11.4s,   +09d03'32",    2200Jy at 100micron
+W51,	      19h23m42.0s,   +14d30'33.0",   
+DR21,         20h39m01.1s,   +42d19'43.0",  strong 1mm source (Hii region extended)
+DR21_OH,      20h39m01.1s,   +42d22'50.2",  strong source too (extended)
+CasA,         23h23m27.85s,  +58d48'42.8",  SNR, 360x360" map, Look for contaminating dust, Dunne et al
+KL,           05h35m14.5s,  -05d22'30.0",  Orion center for maximum polarization (Tatematsu, PASJ, 2008, 60, 407)
+NGC7023NW,    21h01m36.0s,  +68d11'28.0",  ; NW cloud CDS gives: 21h01m36.9s,  +68d09'48.0",  Bright nebula center, Mambo Habart gives RA = 21h 01mn 46.964s DEC = 68d 08' 57.94'' map center
+
+
+; Weak galactic sources (stars and shells and one molecular cloud)
+;----------------------------------
+
+
+CXTau,      04h14m47.865s,  +26d28'11.01",  Faint Galactic Sources S1.3mm=20-40mJy?  Ph Mauskopf
+L1495AS,    04h18m39.9s,   +28d23'16",      Observed by SCUBA at 850 microns, ABacmann
+FTTau,      04h23m39.19s,  +24d56'14.1",    F2mm= 51mJy,  Karl's expectation
+DHTau,      04h29m41.56s,  +26d32'58.3",    F2mm= 17mJy,  Karl's expectation
+ZZTauIRS,   04h30m51.714s, +24d41'47.51",   Should be quite strong S1.3mm=100mJy  Ph Mauskopf
+B18,	    04h31m55.7s,   +24d32'33",      Cold core done by Mambo 37mJy near peak 4hrs J. Kirk Cardiff
+TMC2,       04h32m48.7s,   +24d25'12",      F1.3mmPeak ~ 45 mJy/beam(11") 2peaks, ABacmann (Old pos was 04h32m45.5s,   +24d25'08")
+GKTau,      04h33m34.56s,  +24d21'05.9",    F2mm= 6mJy,  Karl's expectation
+AATau,      04h34m55.42s,  +24d28'53.2",    F2mm= 30mJy,  Karl's expectation
+DOTau,      04h38m28.58s,  +26d10'49.4",    F2mm= 37mJy,  Karl's expectation
+BullsTail,  04h41m30.0s,   +25d45'00.0",    Tau Filament, Nutter et al 2008, Scuba 850um map, Do 10x10 arcmin maps, 1h
+DRTau,      04h47m06.21s,  +16d58'42.8",    F2mm= 51mJy,  Karl's expectation
+GMAur,      04h55m10.98s,  +30d21'59.5",    F2mm= 70mJy, Karl's expectation
+V836Tau,    05h03m06.60s,  +25d23'19.7",    F2mm= 15mJy,  Karl's expectation
+NGC2268,    05h46m39.0s,   +00d00'00",      OrionB filament source at the Equator, 2 hrs 10x6 arcmin map (D. Nutter) Follow-up of Scuba2
+RHOOPHSM1,  16h26m27.39s,  -24d23'57.9",     SM1 center of Rho Oph
+L1689B,     16h34m48.3s,   -24d38'04",      F1.3mmPeak ~ 65 mJy/beam(11") ABacmann
+IRC10420,   19h26m48.100s, +11d21'16.70",   F1.1mm= 460.7 +-27.8mJy
+PCyg,       20h17m47.202s, +38d01'58.55",   
+WR147,      20h36m43.640s, +40d21'07.60",   
+Fomalhaut,  22h57m39.046s, -29d37'20.05",   F1.0=100mJy, do a fine sampled map to get disk debris
+
+;Nearby Galaxies (Test of mapping)
+;--------------- 
+M33,       01h34m11.80s,   +30d50'23.40",    600"x500" map -> 3 mol clouds F1mm~11mJy/11" F2mm~7mJy/18", S(353Planck)=2.5+-0.26 Jy Extended
+NGC604,    01h34m32.8s,    +30d47'00.6",     Region in M33 mapped by Carsten with Herschel and Gismo, need at least 5x5, coord from Carsten
+NGC891,    02h22m33.4s,    +42d20'57",       Nice edge-on galaxy, need at least 5arcmin size map, 600 mJy in 90" (Chini...) +Guelin1993
+NGC1068,   02h42m40.7s,    -00d00'48",       =M77, F1.3mm =  22mJy, rising to 36 at 3mm, S(217Planck)=0.720+-0.065 Jy !... 
+M82,       09h55m52.7s,    +69d40'46s,       S(143Planck)=0.960+-0.053Jy, S(217Planck)=2.69+-0.050Jy , Coordinates OK.
+NGC3690,   11h28m32.200s,  +58d33'44.00",    Galaxy pair F1.2mm = 95+-11mJy on 30", Could be extended, S(353Planck)=0.644+-0.063Jy = Arp299
+Arp244,    12h01m52.8s,    -18d51'54",       Antennae galaxies, S(353Planck)=0.861+-0.097
+M87,       12h30m49.40s,   +12d23'28.00",    Easy to detect NIKA1 run, S(143Planck)=5.34+0.07Jy, S(217Planck)=4.04+0.09Jy Need a map. See radio maps.
+M51,       13h29m52.37s,   +47d11'40.8",     Too weak?
+
+;Distant Galaxy  or faint quasars (Test of point source flux noise)
+; ------------------------------------------------
+XMM_M5,        02h18m56.74s, -04d35'44.9",  S(1.3mm)exp=10mJy, See Ismael
+XMM_17,        02h22m11.54s, -07d02'22.9",  S(1.3mm)exp=25mJy, See Ismael, very red Spire source
+XMM_M6,        02h24m22.87s, -04d44'22.9",  S(1.3mm)exp=11mJy, See Ismael
+XMM_M2,        02h25m15.10s, -02d47'09.2",  S(1.3mm)exp=12mJy, See Ismael
+4C05.19,       04h14m37.8s,  +05d34'42",    (lensed by MG J0414+0534),  z=2.639, S1.2mm=40+-2mJy, nonthermal
+J07561,        07h56m18.14s, +41d04'08.6",  J075618.14+410408.6, z= 5.09, F1.3 mm = 5.5 +- 0.5 mJy Wang et al 2008, ApJ, 135, 1201
+APM08279,      08h31m41.7s,  +52d45'17.4",  z=3.91, S1.2mm=17.0+-0.5mJy (is APM08279+5255 = IRAS F08279+5255) (no + sign in name for Pako)
+HSO_ID017,     09h03m02.90s, -01d41'27.6",  S1.2=15.3+-1.3 mJy, z=2.308
+HSO_ID081,     09h03m11.60s, +00d39'06.3",  S1.2=20.0+-0.7 mJy, z=3.042
+HSO_ID009,     09h07m40.05s, -00d42'00.0",  S1.2mm = 6.9+-1.2 mJy Mambo
+HSO_ID011,     09h10m43.06s, -00d03'22.4",  S1.2=12.2+-1.2 mJy, z=1.786
+HSO_ID130,     09h13m05.09s  -00d53'42.8",  S1.2=11.2+-1.2 mJy, z=2.626
+HLS091828,     09h18m28.6s,  +51d42'23.3",  HLSJ091828.6+514223., z=5.243,         F1.3sma= 55+-7mJy, F0.88mm= 125+-8mJy,  F2mm= 15+-7mJy, Combes et aL. 2012
+HAT091840,     09h18m40.8s,  +02d30'47",    J091840.8+023047, z=2.581, G09v2.343,  F1.3mbo=  8.1+-1.2mJy
+J09272,        09h27m21.82s, +20d01'23.7",  J092721.82+200123.7, z= 5.77, F1.3 mm = 5.0 +- 0.8 mJy, F3.5 mm = 0.12 +- 0.03 mJy
+F10214+4724,   10h24m34.56s, +47d09'09.5",  SDSS J102434.56+470909.5,  F1.3mm = 10 mJy, faint IRAS galaxy 2mJy expected at 2 mm
+HLSW01,	       10h57m51.1s,  +57d30'27",    Conley+ 2011, ApJ, z=2.958, S1.3=12.0 +- 0.5 mJy CSO/Z-Spec, S3.4=0.61 +- 0.19 mJy CARMA
+BR1202-0725,   12h05m23.08s, -07d42'32",    z=4.69 S1.2mm= 12.6+-2.3mJy
+HAT133008,     13h30m08.56s, +24d58'58.3",  J133008.4+245900, z=3.111, NB.v1.78,   F1.3= 36.9+-0.4mJy  (240GHz PdBI)
+BRI1335-0417,  13h38m03.4s,  -04d32'35",    z=4.41, S1.2mm= 10.3+-1.0mJy
+SBS1408+567,   14h09m55.6s,  +56d28'26",    (other name: J1409+5628), z=2.56, S1.2mm=10.7+-0.6mJy  
+H1413+517,     14h15m46.24s, +11d29'43.4",  Cloverleaf z=2.558 F1.3mm 18+-2 mJy 
+Arp220,        15h34m57.10s, +23d30'11.00", S1.3mm=106mJy, S2.6mm=25mJy (Downes, Eckart 2007 ), S(353Planck)=0.943+-0.080  Jy
+Dole80.2,      15h44m33.25s, +50d23'45.07", Planck Lensed source confirmed, Scuba2, Wise, PdB3mm (30mJy) z=2.6?
+HFLS3,	       17h06m47.8s,  +58d46'23",    J170647.8+584623, z=6.337, Riechers, Nature, 2013, S240GHz=15+-0.2mJy, S140=3.2+0.12 PdBI
+MM18423,       18h42m22.5s,  +59d38'30",    MM18423+5938 z=3.93, S1.2mm=30mJy+-2mJy Lestrade 2010, serendipitous discovery see 2010 iram news
+GRB121123A,    20h29m16.29s, -11d51'35.9",  ToO, BAT+NOT detection 20121123, no z., do OTF_faint maps 1h
+SMMJ2135,      21h35m11.6s,  -01d02'52.0",  z=2.326, S1.2mm=26+-4 mJy (SMA), S2.2=2.0+-0.3 (PdB), Swinbank Lensed galaxy
+PSS2322+1944,  23h22m07.2s,  +19d44'23",    z=4.12, S1.2mm=9.6+-0.5mJy
+
+; HATLAS Lenses measured by Mambo (Dannerbauer, Omont et al. in preparation) SMam is flux at 1.2mm in mJy
+HATLENS07, +08h30m51.02s, +01d32'24.87",  SMam=   34.6 was in previous runs :HAT083051, J083051.0+013224, z=x    , G09v2.97
+HATLENS16, +08h49m33.40s, +02d14'43.14",  SMam=   13.4 was HAT084933 = J084933.4+021443, z=2.410, G09v2.114,  F1.3mbo= 13.5+-3.0mJy
+HATLENS08, +08h53m58.94s, +01d55'37.21",  SMam=   25.6
+HATLENS23, +09h09m48.88s, +00d39'15.97",  SMam=    2.6
+HATLENS09, +11h35m26.36s, -01d46'06.08",  SMam=   23.9 was HAT113526,  J113526.3-014605, z=3.128, G12v2.43,   F1.3mbo= 24+-2.5mJy
+HATLENS25, +11h38m33.77s, -01d46'56.41",  SMam=    0.7
+HATLENS03, +11h46m38.01s, -00d11'32.05",  SMam=   37.7 was HAT114637,  J114637.9-001132, z=3.259, G12v2.30,   F1.3mbo= 38+-3.0mJy, Condensation of sources
+HATLENS12, +12h01m27.62s, -01d40'44.41",  SMam=   16.7
+HATLENS01, +12h51m35.43s, +26d14'57.42",  SMam=   45.2
+HATLENS15, +13h00m53.93s, +26d03'02.58",  SMam=   13.6
+HATLENS10, +13h01m18.06s, +25d37'08.36",  SMam=   21.9
+HATLENS18, +13h23m29.80s, +31d15'29.19",  SMam=   10.2
+HATLENS02, +13h26m30.17s, +33d44'08.76",  SMam=   39.0
+HATLENS04, +13h28m59.34s, +29d23'25.93",  SMam=   36.6
+HATLENS11, +13h36m49.93s, +29d17'59.49",  SMam=   19.8 was HAT133649, J133649.9+291801, z=2.202, NA.v1.144,  F1.3mbo= 20+-4.0mJy, 16.4+/-0.7 mJy at 230GHz PdBI
+HATLENS24, +13h36m59.56s, +32d18'02.45",  SMam=    2.5
+HATLENS22, +13h38m08.81s, +25d51'56.22",  SMam=    4.3
+HATLENS19, +13h43m42.37s, +26d39'20.92",  SMam=    8.8
+HATLENS06, +13h44m29.48s, +30d30'34.64",  SMam=   36.0 was HAT134429,      J134429.4+303036, z=2.301, NA.v1.56,   F1.3mbo= 35+-3.0mJy
+HATLENS20, +13h48m55.68s, +24d07'45.79",  SMam=    8.1
+HATLENS17, +13h49m02.61s, +28d46'36.02",  SMam=   10.5
+HATLENS13, +14h13m51.99s, -00d00'26.83",  SMam=   17.2 was HAT141351,   J141351.9-000026, z=2.478, G15v2.235,  F1.3mbo= 18.3+-1.7mJy
+HATLENS05, +14h24m13.98s, +02d23'03.62",  SMam=   36.0 was HSO_ID141,   Cox et al 2011, S1.2=36+-2 mJy Mambo, S2=9.7mJy PdB
+HATLENS14, +14h44m33.29s, +00d16'38.66",  SMam=   13.6
+HATLENS21, +14h46m08.65s, +02d19'27.44",  SMam=    5.6
+
+
+; Deep survey around these sources
+;---------------------------------
+Subaru,	      02h18m02.15s,  -05d00'19",     Subaru deep field (Scuba)
+SXDF,         02h18m30.6s,   -05d31'30",     Centered on Orochi Aztec source: 34mJy at 1.1mm, 15mJy 1.3mmCarma and 70 mJy SMA data 0.88mm.
+Aztec1,	      09h59m42.86s,  +02d29'38.2",   z=4.65, S1.3mm= 9.4+-1.6 mJy, S850=16mJy, Smolcic 2011, ApJL 731, L27  
+GN20,         12h37m11.90s,  +62d22'12.1",   z=4.055, S850um=30mJy, 3.3mm=0.33mJy, Daddi et al 2009, ApJ, 694, 1517
+
+; Clusters of galaxies (mapping noise test)
+; ---------------------------------
+CL0016+16,    00h18m33.3s,  +16d26'36",   rc=55", map 3x5', step 9", 20"/s, 5min, T=8keV, y~2E-4 (Hughes Birkinshaw 1998)
+MS0451,	      04h54m11.0s,  -03d00'53",   z=0.55, y0=3E-4, rc=60" seen by ; Bolocam, ACT, CARMA
+A520,         04h54m19.0s,  +02d56'49",   z=0.199, Request by Angelo
+MACS0717,     07h17m33.8s,  +37d45'20",   MACS J0717.5+3745  z=0.545800  Bolocam data see M. De Petris, 11.6 keV XSize=5 arcmin, do 7 
+A665,         08h30m45.2s,  +65d52'55",   rc=17.7",  coordinates OK
+A697,         08h42m58s,    +36d21'56",   z= 0.28, y0=3.1E-4, rc=98", bolocam +PlanckESZ
+RXJ1347-1145, 13h47m31.0s,  -11d45'25",   Beware of south extension. From Rémi, Coord of the X-ray center and not the south extension
+A1835,        14h01m02.0s,  +02d51'32",   yc=5e-4, 3rd brightest X-ray cluster z=0.253200
+IDCSJ1426,    14h26m34.0s,  +35d08'02.6", z=1.75 SZA detected position
+A2163,        16h15m45.91s, -06d08'53.5", Same map Thetac=1.2'
+A2204,        16h32m45.7s,  +05d34'43",   yc=2e-4 z=0.152158      
+M2228,	      22h28m33.0s,  +20d37'14.4", z=0.412, thetac=20", DeltaT0=-1.73mK, y0=3E-4, LaRoque et al 2006., = MACS J2228.5+2036
+
+
+
+

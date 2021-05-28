@@ -1,0 +1,547 @@
+; Change format to suit Albrecht needs
+; back to a structure
+; Try to write a table in a fits column
+; v8 : include new polyn fits
+; v9 add few keywords and polyfit goes to 2 instead of 3 when problems
+; Additional info in header from calibration
+; v10 is first test for 2012 campaign
+; v11 remove X, Y, add FTONE, add tuning params in another extension
+; v12 Identical to v11 but adapted to run5
+; v13 start same as v12 but moved to NIKA pipeline
+;     Intend to evolve to write only the useful channels and replcae the last column:
+;     fres (the absolute resonance frequency)
+; v14 for preRun 7= runCryo
+; v15 ftotal --> fres, for run7
+; v16 Run7 v2 Timing for each array
+; v16updp means that only the params extension is changed in an existing fits
+; file
+; updp contains the full directory name where fits files are.
+; updp/New should exist and new files will be copied there
+; v16cfits means one creates new output files with clean TOIs instead of raw
+; TOIs
+; v17cfits means we forget about total imbfits and starts from antenna imbfits
+; as many total files are missing
+; v18cfits move to nk pipeline, implement Alexandre Beelen's mbfits keywords
+
+silent = 1-keyword_set( verb)
+;;------- define lists of planets
+planets = ['Mars', 'Jupiter','Saturn','Uranus','Neptune', 'Pluto']
+now= bin_date()
+datenow= string( now[0], '-', zeropadd(now[1],2), '-', zeropadd(now[2],2),'T', $
+                 now[3],':', now[4],':', now[5],' CET', $
+                 format='(I4, A1, A2, A1, A2, A1, I2, A1, I2, A1, I2, A4)')
+
+nika_pipe_clean_timing, strdat, verb = verb  ; default sync on A time
+
+; Reduce the data with the standard pipeline without the map-making stage.
+;;------- Select the scan
+scan_num = round( median( strdat.scan))
+filebasecf = file_basename( filein)
+str2cf = strsplit(filebasecf,'_',/extract)
+day = str2cf[1]+str2cf[2]+str2cf[3]
+scan = day+'s'+strtrim( scan_num, 2)
+
+;;------- Get default params accordingly
+nk_default_param, param
+param.silent= silent
+param.do_plot = 0 ; no plot
+
+param.iscan = 0
+if not keyword_set(info) then nk_default_info, info
+;;nk_update_scan_param, scan, param, info
+nk_update_param_info, scan, param, info
+
+;;------- Define directories and names
+param.file_imb_fits = !nika.imb_fits_dir+'/'+ $
+                      'iram30m-antenna-'+ scan+'-imb.fits'
+
+; Find the coordinate system
+if file_test( param.file_imb_fits) ne 1 then begin
+   message, /info, 'Antenna imbfits file does not exist '+ param.file_imb_fits
+   return
+endif
+
+readin2 = mrdfits(param.file_imb_fits, 2, hdr2, status=status, /silent)
+projection = strupcase( sxpar( hdr2, 'SYSTEMOF'))
+readin0 = mrdfits(param.file_imb_fits, 0, hdr0, status=status, /silent)
+param.source = strtrim(sxpar( hdr0, 'OBJECT'), 2)
+
+;;------- Flag the no correlated KIDs
+;;;??param.flag.uncorr = 'no'
+
+;; Parameters to compute a simple baseline with this method
+param.decor_method = 'COMMON_MODE_KIDS_OUT'
+;param.decor.common_mode.d_min = 20.0   ; arcsec avoidance radius
+;param.decor.common_mode.nbloc_min = 10
+;param.decor.common_mode.nsig_bloc = 2
+if !nika.run le 10 then param.decor_per_subscan = 'yes' else param.decor_per_subscan = 1
+param.interpol_common_mode = 1  ; otherwise there are failures sometimes
+if keyword_set( verb) then $
+   print, 'param.decor_per_subscan = ', $
+          param.decor_per_subscan
+nk_init_grid, param, grid
+nk_default_mask, param, info, grid ; by default use 30" about
+; otherwise use d=arcsec radius as a keyword
+
+; Start copying what's done in nk
+info.proj_type = projection
+
+; Can be done in nk_update_scan_info
+;;------- Guess if an Az El map is preferred
+lplanets = where( $
+   strtrim( strupcase(param.source), 2) eq strupcase( planets), nlplanets)
+if nlplanets gt 0 and projection ne 'PROJECTION' then azel=1 else azel=0
+if nlplanets gt 0 then print, 'Azel = ', azel, ' projection = ', projection
+; Azel should only be used when projection is 'HORIZONTALTRUE' and not PROJECTION
+if azel then param.map_proj = 'AZEL' else param.map_proj = 'RADEC'
+
+;;--------- Perform all operations on data that are not projection nor cleaning dependent
+;; Same as nk_scan_preproc, param, info, data, kidpar
+; but do not read the data again
+nk_get_kid_pointing, param, info, strdat, kidpar
+;; Calibrate
+nk_calibration, param, info, strdat, kidpar
+;; Deglitch
+nk_deglitch, param, info, strdat, kidpar
+
+;;------------------------------------------------------------------------------
+;;-------- Run decorrelation and polarization reduction if relevant
+;; Use nk_scan_reduce for further easier maintainance.
+;; nk_scan_reduce, param, info, strdat, kidpar, grid, out_temp_data = baseline
+;; NP, June 26th: back to "exploded" version of nk_scan_reduce to produce clean imbfits with uncorrelated data for Helene.
+
+;;---------- processes, decorrelates, compute noise weights...
+;;;; same as (but simplified)           nk_scan_reduce, param, info, strdat, kidpar
+;; Compute strdat.ipix to save time
+nk_get_ipix, strdat, info, grid.xmin, grid.ymin, grid.nx, grid.ny, grid.map_reso
+
+;; Define which parts of the maps must be masked for common mode estimation
+;; info.mask_source must be 1 outside the source, 0 on source
+nk_mask_source, param, info, strdat, kidpar, grid
+
+if info.polar ne 0 and param.lab_polar eq 0 then begin
+
+   ;; Subtract HWP parasitic signal (a.k.a the template)
+   
+   ;; Flag out the source to preserve HWP amplitudes
+   if param.rm_hwp_per_subscan eq 0 then begin
+      nk_hwp_rm, param, kidpar, data
+   endif else begin
+      for i =   min(data.subscan),   max(data.subscan) do begin
+         w     =   where(data.subscan eq i)
+         data1 = data[w]
+         nk_hwp_rm, param, kidpar, data1
+         data[w].toi =  data1.toi
+      endfor
+   endelse
+
+   ;; Lockin to reduce the number of samples and to build toi, toi_q, and toi_u
+   nk_lockin, param, info, data, kidpar
+   nk_upgrade_grid, param, grid
+endif
+
+;; Deglitch: unflag all samples since they've been interpolated and they're
+;; needed for the deglitch, then restore the flags
+flag_copy = strdat.flag
+strdat.flag = 0
+nk_deglitch, param, info, strdat, kidpar
+strdat.flag = flag_copy
+
+;; Treat the noise (decorrelation and filtering, noise weighting
+;; make a copy to preserve strdat while computing the "common modes" in "baseline"
+data = strdat
+nk_clean_data, param, info, data, kidpar, out_temp_data=baseline
+;; END of nk_scan_reduce
+;;------------------------------------------------------------------------------
+
+stop
+
+;; Determine observation time and store info
+info.total_obs_time = n_elements(strdat)/!nika.f_sampling
+
+;; Average elevation
+medelevdeg = median( strdat.el) * !radeg ; in degrees
+
+;; degrees
+ra_pointing = info.longobj
+dec_pointing = info.latobj
+if azel then begin  ; in Azel mode center on 0,0
+  ra_pointing = 0.
+  dec_pointing = 0.
+endif
+
+if keyword_set( verb) then print,  projection, ' with azel= ', azel
+
+npt = n_elements(strdat)
+nkid = n_elements( kidpar)
+kid_xx = dblarr( nkid, npt)
+kid_yy = dblarr( nkid, npt)
+for ikid=0, n_elements(kidpar)-1 do begin
+      if kidpar[ ikid].type eq 1 then begin
+         kid_yy[ikid,*] = strdat.ddec[ ikid]/3600.0 + dec_pointing
+         kid_xx[ikid,*] = -strdat.dra[ ikid]/3600.0/ $
+                          cos(kid_yy[ikid,*]*!dpi/180.0) + ra_pointing
+      endif
+endfor
+
+idxA = where( kidpar.array eq 1 and kidpar.type eq 1, ndetA)
+idxB = where( kidpar.array eq 2 and kidpar.type eq 1, ndetB)
+; End of processing
+
+;------------------------------------------------------------------
+; START A File
+;------------------------------------------------------------------
+hdrA = [ "COMMENT   FITS (Flexible Image Transport System) format is defined in 'Astronomy", $
+          "COMMENT   and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H", $
+          'END                                                                             ']
+facq = !nika.f_sampling 
+
+;fxaddpar, hdrA, 'EXTNAME', 'CleanNIKAdata', $ old
+;fxaddpar, hdrA, 'EXTNAME', 'ARRAYDATA-MBFITS', $ MBFits
+fxaddpar, hdrA, 'EXTNAME', 'IMBF-backendNIKA1mm',  $ ; preferred (same as Totalimbfits)
+      'Calibrated TOI with accurate pointing info'
+fxaddpar, hdrA, 'COMMENT', $
+          'Sample, MJD, Brightness (Jy/beam), Flag (0 = to be projected), ' 
+fxaddpar, hdrA, 'COMMENT', $
+          'XX (deg), YY (deg) [RaDec or Azel, see XXYYTYPE], '
+fxaddpar, hdrA, 'COMMENT', $
+          'CM (common mode Jy/beam, can be subtracted to the signal BR)'
+if keyword_set( azel) then $
+   fxaddpar, hdrA, 'XXYYTYPE', 'AZEL', ' Centered on 0, 0' else $
+   fxaddpar, hdrA, 'XXYYTYPE', 'RADEC', '2000'
+fxaddpar, hdrA, 'TELESCOP', 'IRAM 30m', ' Telescope Name'
+fxaddpar, hdrA, 'ORIGIN', 'IRAM', ' Organization or institution'
+;;fxaddpar, hdrA, 'INSTRUME', 'NIKA2014_IRAMNov_1mm', ' Instrument Name'
+
+my_month = strmid(param.scan, 0, 6)
+fxaddpar, hdrA, 'INSTRUME', 'NIKA'+strtrim(my_month, 2)+'_1mm', ' Instrument Name'
+fxaddpar, hdrA, 'SCANNUM', scan_num, 'Scan number'
+fxaddpar, hdrA, 'N2I', 'v18c', $
+      'NIKA to IRAM idl clean imbfits conversion program version '
+fxaddpar, hdrA, 'DATE', datenow, ' Extension creation date (CET)'
+fxaddpar, hdrA, 'INTTIME', 1./facq, $
+      ' Integration time in seconds'
+
+; Projection system
+; Radec or elev
+; Mais à l'oeil il manque aussi 
+; CHANNELS, BOLGAIN, NPHASES, PHASEONE TSTAMPED (important celui là), NORMALIZ.
+
+; Add the number of detectors in the local header
+fxaddpar, hdrA, 'NDET', ndetA, ' Number of detectors in extension'
+; same quantity in imbfits format
+fxaddpar, hdrA, 'NUSEFEED', ndetA, ' Number of feeds in use for this baseband'
+fxaddpar, hdrA, 'CHANNELS', ndetA, $
+                   ' Number of channels for this baseband'
+fxaddpar, hdrA, 'BOLGAIN', '      ', $
+          ' Bolometer backend gain (not used in NIKA)'
+fxaddpar, hrdA, 'PHASES',  1, $
+          ' Number of switch phases in a switch cycle'
+fxaddpar, hrdA, 'PHASEONE', 'ON     ', ' First phase is ON or OFF source'
+fxaddpar, hrdA, 'TSTAMPED', 0.5,  ' Where the time stamps apply'
+fxaddpar, hrdA, 'NORMALIZ', 1,    ' True if data is normalized'
+
+if ndetA eq 0 then begin
+   message, /info, 'No valid 1mm kids'
+   goto, startb
+endif
+
+;; "br" stands for Brightness, in Jy/Beam (already documented in the header)
+;; "fl": flags
+if info.polar eq 0 then begin
+   dstr = {sample:0L, mjd:0D, br: fltarr( ndetA), fl: intarr( ndetA), $
+           XX: dblarr( ndetA), YY: dblarr( ndetA), cm: fltarr( ndetA)}
+endif else begin
+   dstr = {sample:0L, mjd:0D, br: fltarr( ndetA), br_q: fltarr( ndetA), br_u: fltarr( ndeta),  $
+           fl: intarr( ndetA), $
+           XX: dblarr( ndetA), YY: dblarr( ndetA), cm: fltarr( ndetA)}
+endelse
+                         ; Loop reading and writing the imbfits file
+iext = 0
+isubscan_current = 1            ; first subscan
+repeat begin
+   readin = mrdfits(param.file_imb_fits, iext, hdr, status=status, /silent)
+   cr = iext eq 0
+   extna = sxpar( hdr, 'EXTNAME')
+; Use corrected mjd. Eliminate tuning part of subscan. But maintain
+; in principle the continuity of the data
+   isub = where( strdat.subscan eq isubscan_current and $
+                 strdat.scan_valid[0] eq 0 and $
+                 strdat.scan_valid[1] eq 0,  ndasub)
+   gdsub = where( strdat[ isub].flag[ idxA[0]] eq 0, ngdsub)
+   if ndasub ne 0 then begin
+      mjdstart = strdat[ isub[0]].mjd
+      mjdend   = strdat[ isub[ndasub-1]].mjd
+   endif else begin  ; stupid case
+      mjdstart = strdat[ 0].mjd
+      mjdend = strdat[ n_elements( strdat)-1].mjd
+   endelse
+
+   case strtrim( strupcase(extna), 2) of 
+      strupcase('IMBF-scan') : begin
+         fxaddpar,  hdr, 'NIKATAU1', float( kidpar[idxA[0]].tau_skydip), $
+                    ' [ ] NIKA atm. zenith opacity at 1mm', after = 'DATE-TIP'
+         fxaddpar,  hdr, 'NIKATAU2', float( kidpar[idxB[0]].tau_skydip), $
+                    ' [ ] NIKA atm. zenith opacity at 2mm', after = 'NIKATAU1'
+         fxaddpar,  hdr, 'MEDELEV', float( medelevdeg), $
+                    ' [deg] Median elevation of the scan', after = 'NIKATAU2'
+         if not keyword_set( noexe) then $
+            if status ge 0 then $
+               mwrfits, create = cr, readin, outfileAcfits, hdr, /silent
+      ;; end
+      ;; strupcase('Params') : begin
+; Write directly in another extension the general configuration
+      hconfigA = ['END                                                                             '] 
+      fxaddpar, hconfigA, 'EXTNAME', 'KidParams'
+      fxaddpar, hconfigA, 'COMMENT', ' NIKA 1mm Global configuration parameters'
+      ntag = n_tags( param_c)
+      tagname = tag_names( param_c)
+; Tagname is truncated to 8 characters, give the full tagname in comment field
+      for itag = 0,  ntag-1 do $
+         fxaddpar,  hconfigA, 'NKconf' + string(zeropadd(itag, 2), $
+                                                format = '(A2)'),  $
+                    param_c.(itag), tagname[itag], before = 'EXTNAME'
+      if not keyword_set( noexe) then $
+         mwrfits, kidpar[idxA], outfileAcfits, hconfigA, /silent
+   end
+
+      strupcase( 'IMBF-antenna') : begin
+; Modify DATE-OBS and DATE-END according to valid subscan part
+;DATE-OBS= '2014-02-22T11:33:42.250' / observation start in TIMESYS system
+;DATE-END= '2014-02-22T11:33:52.125' / observation end in TIMESYS system
+;;   strupcase('IMBF-backendNIKA1mm') : begin
+; Write directly in another extension the data
+         hconfigA = hdrA
+         fxaddpar, hconfigA, 'EXTNAME', 'IMBF-backendNIKA1mm'
+
+;OBSNUM, sinon on ne peut pas ordonner les données proprement 
+; (et là mon code bloque)
+; Mais à l'oeil il manque aussi 
+; SCANNUM, DATE-OBS, DATE-END (très important ces deux là), 
+         fxaddpar, hconfigA, 'OBSNUM', $
+                   isubscan_current, ' Observation number (subscan)'
+         fxaddpar, hconfigA, 'DATE-OBS', $
+                   mjd2date( mjdstart), ' NIKA modified observation start'
+         fxaddpar, hconfigA, 'DATE-END', $
+                   mjd2date( mjdend), ' NIKA modified observation end'
+          fxaddpar, hconfigA, 'COMMENT', ' NIKA 1mm Data'
+         if ndasub lt 1 then begin
+            dout = replicate( dstr, 2) ; Empty extension default
+            message, /info, 'No data available for that subscan '+ $
+                     strtrim( isubscan_current, 2)
+         endif else begin 
+            dout = replicate( dstr, ndasub) 
+            dout.sample  = strdat[ isub].sample
+            dout.mjd     = strdat[ isub].mjd
+            dout.br      = strdat[ isub].toi[ idxA]
+            
+            if info.polar ne 0 then begin
+               dout.br_q = strdat[ isub].toi_q[idxA]
+               dout.br_u = strdat[ isub].toi_u[idxA]
+            endif
+
+            dout.fl      = strdat[ isub].flag[ idxA]
+            for ida = 0, ndetA-1 do dout.xx[ ida] = $
+               reform( kid_xx[ idxA[ ida], isub])
+            for ida = 0, ndetA-1 do dout.yy[ ida] = $
+               reform( kid_yy[ idxA[ ida], isub])
+            for ida = 0, ndetA-1 do dout.cm[ ida] = $
+               reform( baseline[ isub].toi[ idxA[ ida]])
+         endelse
+         isubscan_current = isubscan_current+1
+         if not keyword_set( noexe) then $
+            mwrfits, dout, outfileAcfits, hconfigA, /silent
+         
+; Do antenna extension following NIKA data
+         hdrmod = hdr
+         fxaddpar, hdrmod, 'DATE-OBS', mjd2date( mjdstart), $
+                   'NIKA modified observation start in TIMESYS system'
+         fxaddpar, hdrmod, 'DATE-END', mjd2date( mjdend), $
+                   'NIKA modified observation end   in TIMESYS system'
+         if not keyword_set( noexe) then $
+            mwrfits, readin, outfileAcfits, hdrmod, /silent
+         
+      end
+      else : begin
+         if not keyword_set( noexe) then $
+            if status ge 0 then $
+               mwrfits, create = cr, readin, outfileAcfits, hdr, /silent
+      end
+      
+   endcase
+   
+   iext = iext + 1
+endrep until status lt 0
+
+;------------------------------------------------------------------
+; SAME FOR B
+;------------------------------------------------------------------
+startb:
+
+hdrB = [ "COMMENT   FITS (Flexible Image Transport System) format is defined in 'Astronomy", $
+          "COMMENT   and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H", $
+          'END                                                                             ']
+fxaddpar, hdrB, 'EXTNAME', 'IMBF-backendNIKA2mm',  $ ; preferred (same as Totalimbfits)
+      'Calibrated TOI with accurate pointing info'
+fxaddpar, hdrB, 'COMMENT', $
+          'Sample, MJD, Brightness (Jy/beam), Flag (0 = to be projected), ' 
+fxaddpar, hdrB, 'COMMENT', $
+          'XX (deg), YY (deg) [RaDec or Azel, see XXYYTYPE], '
+fxaddpar, hdrB, 'COMMENT', $
+          'CM (common mode Jy/beam, can be subtracted to the signal BR)'
+if keyword_set( azel) then $
+   fxaddpar, hdrB, 'XXYYTYPE', 'AZEL', ' Centered on 0, 0' else $
+   fxaddpar, hdrB, 'XXYYTYPE', 'RADEC', '2000'
+fxaddpar, hdrB, 'TELESCOP', 'IRAM 30m', ' Telescope Name'
+fxaddpar, hdrB, 'ORIGIN', 'IRAM', ' Organization or institution'
+;fxaddpar, hdrB, 'INSTRUME', 'NIKA2014_IRAMNov_2mm', ' Instrument Name'
+fxaddpar, hdrA, 'INSTRUME', 'NIKA'+strtrim(my_month, 2)+'_2mm', ' Instrument Name'
+
+fxaddpar, hdrB, 'N2I', 'v18c', $
+      'NIKA to IRAM idl clean imbfits conversion program version '
+fxaddpar, hdrB, 'DATE', datenow, ' Extension creation date (CET)'
+fxaddpar, hdrB, 'INTTIME', 1./facq, $
+      ' Integration time in seconds'
+; Projection system
+; Radec or elev
+
+; Add the number of detectors in the local header
+fxaddpar, hdrB, 'NDET', ndetB, ' Number of detectors in extension'
+; same quantity in imbfits format
+fxaddpar, hdrB, 'NUSEFEED', ndetB, ' Number of feeds in use for this baseband'
+fxaddpar, hdrB, 'CHANNELS', ndetB, $
+                   ' Number of channels for this baseband'
+fxaddpar, hdrB, 'BOLGAIN', '      ', $
+          ' Bolometer backend gain (not used in NIKA)'
+fxaddpar, hrdB, 'PHASES',  1, $
+          ' Number of switch phases in a switch cycle'
+fxaddpar, hrdB, 'PHASEONE', 'ON     ', ' First phase is ON or OFF source'
+fxaddpar, hrdB, 'TSTAMPED', 0.5,  ' Where the time stamps apply'
+fxaddpar, hrdB, 'NORMALIZ', 1,    ' True if data is normalized'
+
+if ndetB eq 0 then begin
+   message, /info, 'No valid 2mm kids'
+   return
+endif
+
+if info.polar eq 0 then begin
+   dstr = {sample:0L, mjd:0D, br: dblarr( ndetB), fl: intarr( ndetB), $
+           XX: dblarr( ndetB), YY: dblarr( ndetB), cm: fltarr( ndetB)}
+endif else begin
+   dstr = {sample:0L, mjd:0D, br: dblarr( ndetB), br_q: fltarr( ndetB), br_u: fltarr( ndetB), $
+           fl: intarr( ndetB), $
+           XX: dblarr( ndetB), YY: dblarr( ndetB), cm: fltarr( ndetB)}
+endelse
+nika_pipe_clean_timing, strdat, verb = verb, /use_B ; sync on B time
+
+; Loop reading and writing the imbfits file
+iext = 0
+isubscan_current = 1            ; first subscan
+;if file_test( outfileB) ne 1 then begin
+;   message, /info, 'Total imbfits file does not exist '+ outfileB
+;   return
+;endif
+repeat begin
+   readin = mrdfits(param.file_imb_fits, iext, hdr, status=status, /silent)
+   cr = iext eq 0
+   extna = sxpar( hdr, 'EXTNAME')
+; Use corrected mjd. Eliminate tuning part of subscan.
+   isub = where( strdat.subscan eq isubscan_current and $
+                 strdat.scan_valid[0] eq 0 and $
+                 strdat.scan_valid[1] eq 0,  ndasub)
+   gdsub = where( strdat[ isub].flag[ idxB[0]] eq 0, ngdsub)
+   if ndasub ne 0 then begin
+      mjdstart = strdat[ isub[0]].mjd
+      mjdend   = strdat[ isub[ndasub-1]].mjd
+   endif else begin  ; stupid case
+      mjdstart = strdat[ 0].mjd
+      mjdend = strdat[ n_elements( strdat)-1].mjd
+   endelse
+   
+   case strtrim( strupcase(extna), 2) of
+      strupcase('IMBF-scan') : begin
+         fxaddpar,  hdr, 'NIKATAU1', float( kidpar[idxA[0]].tau_skydip), $
+                    ' [ ] NIKA atm. zenith opacity at 1mm', after = 'DATE-TIP'
+         fxaddpar,  hdr, 'NIKATAU2', float( kidpar[idxB[0]].tau_skydip), $
+                    ' [ ] NIKA atm. zenith opacity at 2mm', after = 'NIKATAU1'
+         fxaddpar,  hdr, 'MEDELEV', float( medelevdeg), $
+                    ' [deg] Median elevation of the scan', after = 'NIKATAU2'
+         if not keyword_set( noexe) then $
+            if status ge 0 then $
+               mwrfits, create = cr, readin, outfileBcfits, hdr, /silent
+      ;; end
+      ;; strupcase('Params') : begin
+; Write directly in another extension the general configuration
+         hconfigB = ['END                                                                             '] 
+         fxaddpar, hconfigB, 'EXTNAME', 'KidParams'
+         fxaddpar, hconfigB, 'COMMENT', ' NIKA 2mm Global configuration parameters'
+         ntag = n_tags( param_c)
+         tagname = tag_names( param_c)
+; Tagname is truncated to 8 characters, give the full tagname in comment field
+         for itag = 0,  ntag-1 do $
+            fxaddpar,  hconfigB, 'NKconf' + string(zeropadd(itag, 2), $
+                                                   format = '(A2)'),  $
+                       param_c.(itag), tagname[itag], before = 'EXTNAME'
+         
+         if not keyword_set( noexe) then $
+            mwrfits, kidpar[idxB], outfileBcfits, hconfigB, /silent
+      end
+     strupcase( 'IMBF-antenna') : begin
+
+;;;      strupcase('IMBF-backendNIKA2mm') : begin
+; Write directly in another extension the data
+         hconfigB = hdrB
+         fxaddpar, hconfigB, 'EXTNAME', 'IMBF-backendNIKA2mm'
+         fxaddpar, hconfigB, 'OBSNUM', $
+                   isubscan_current, ' Observation number (subscan)'
+         fxaddpar, hconfigB, 'DATE-OBS', $
+                   mjd2date( mjdstart), ' NIKA modified observation start'
+         fxaddpar, hconfigB, 'DATE-END', $
+                   mjd2date( mjdend), ' NIKA modified observation end'
+         fxaddpar, hconfigB, 'COMMENT', ' NIKA 2mm Data'
+         if ndasub lt 1 then begin
+            dout = replicate( dstr, 2) ; Empty extension default
+            message, /info, 'No data available for that subscan '+ $
+                     strtrim( isubscan_current, 2)
+         endif else begin 
+            dout = replicate( dstr, ndasub) 
+            dout.sample  = strdat[ isub].sample
+            dout.mjd     = strdat[ isub].mjd
+            dout.br      = strdat[ isub].toi[ idxB]
+            if info.polar ne 0 then begin
+               dout.br_q = strdat[ isub].toi_q[idxB]
+               dout.br_u = strdat[ isub].toi_u[idxB]
+            endif
+
+            dout.fl      = strdat[ isub].flag[ idxB]
+            for idb = 0, ndetB-1 do dout.xx[ idb] = $
+               reform( kid_xx[ idxB[ idb], isub])
+            for idb = 0, ndetB-1 do dout.yy[ idb] = $
+               reform( kid_yy[ idxB[ idb], isub])
+            for idb = 0, ndetB-1 do dout.cm[ idb] = $
+               reform( baseline[ isub].toi[ idxB[ idb]])
+         endelse
+         isubscan_current = isubscan_current+1
+         if not keyword_set( noexe) then $
+            mwrfits, dout, outfileBcfits, hconfigB, /silent
+
+        hdrmod = hdr
+        fxaddpar, hdrmod, 'DATE-OBS', mjd2date( mjdstart), $
+                  'NIKA modified observation start in TIMESYS system'
+        fxaddpar, hdrmod, 'DATE-END', mjd2date( mjdend), $
+                  'NIKA modified observation end   in TIMESYS system'
+        if not keyword_set( noexe) then $
+           mwrfits, readin, outfileBcfits, hdrmod, /silent
+     end
+
+     else : begin
+        if not keyword_set( noexe) then $
+           if status ge 0 then $
+              mwrfits, create = cr, readin, outfileBcfits, hdr, /silent
+     end
+     
+  endcase
+   
+   iext = iext + 1
+endrep until status lt 0
+

@@ -1,0 +1,734 @@
+; Iterative map making technique
+; Analysis part : see Test_imcmcall3.scr (for drafting this routine)
+; Noise and Filtering analysis
+
+set_plot, 'x'
+png = 0
+post = 0                        ; default
+if keyword_set( ps) then begin
+   png = 0
+   post = 1
+endif                           ; in that order (ie before pdf, for pdf to work)
+if keyword_set( pdf) then begin
+   png = 0
+   post = 2
+endif
+if keyword_set( png) then begin
+   post = 0
+   pdf = 0
+endif
+;print, 'png, post, pdf ',  png, post, pdf
+project_dir = source_dir+ '/' +strtrim(method_num, 2)
+if not defined( info_all) then begin
+   imcmcall_info, project_dir+'/iter'+strtrim(iter_min,2), source, method_num, ext, version, $
+                  info_all, scan_list, $
+               /chrono, param = param
+endif
+if not defined( param) then begin
+   read_file, filsc, 1, scan_list, /whole
+   input_txt_file = filpa
+@read_imcm_input_txt_file
+   param.version = version
+endif
+if keyword_set( itest) then begin
+   imin = round(itest>0)
+   imax = round(itest>0)
+endif else begin
+   imin = 0
+   imax = iter_max
+endelse
+itest = round( itest)
+nscan = n_elements( scan_list)
+if keyword_set( only_plot) then begin
+   imin = iplot_min
+   imax = iplot_max
+endif
+
+Oldp = !p
+if post ne 0 then !p.symsize = 0.2
+
+if not keyword_set( k_catmerge) then begin
+   itermerge = iter_max         ; default
+   if param.atmb_defilter ne 0 then begin
+      itermerge = ((param.atmb_defilter - 1) > 0) < iter_max
+      message, /info, '5-Merging catalog using iteration before defilter: '+ strtrim( itermerge, 2)
+   endif else $
+         message, /info, '5-Merging catalog using last iteration: '+ strtrim( itermerge, 2)
+endif
+
+
+; Flux comparison
+; Adapted from Simu_imcm.scr
+; Flux analysis  
+source_dir = !nika.save_dir+ext+'/'+strupcase(source)
+imcmout_dir = source_dir+'/imcmout' ; output ascii files (catalogs)
+itarr = imin+ indgen(imax-imin+1)
+nit = n_elements( itarr)
+itind = indgen(nit)
+outplot_dir =  !nika.save_dir+'/'+ext+'/'+strupcase(source)+'/'+ $
+                    strtrim(method_num,2)+ '/Plot/'
+catfinal = imcmout_dir+ '/'+ext+'_'+source+'_'+ $
+              strtrim(method_num,2)+version+strtrim(long(itarr),2)+ $
+              '_radec_catfinal.txt'
+ls_unix, strjoin(catfinal+ ' '), /silent
+imcmcall_catread, catfinal, psou
+
+
+; Select all sources
+sizpsou = size( psou)
+nsou = sizpsou[1]
+nfl = nit  ; is sizpsou[2] if nit gt 1
+indsou = indgen(nsou)
+nindsou = n_elements( indsou)
+
+
+; Boost factor and real NEFD...
+info_file =  !nika.save_dir+'/'+ext+'/'+strupcase(source)+'/'+ $
+             strtrim(method_num,2)+ '/iter'+strtrim(long(itarr),2)+ $
+             '/info_'+strupcase(source)+'_v'+version+'.csv'
+sigb = fltarr( 4, nit)          ; A1, A3, 1mm, 2mm
+colarr = indgen( 4) ; color table index
+bgrms = sigb
+nefd = sigb
+nefd0 = nefd  ; correct for elev and tau per scan
+for itf = 0, nit- 1 do begin
+   nk_read_csv, info_file[ itf], str
+   sigb[*, itf] = [str.sigma_boost_I1, str.sigma_boost_I3, $
+                  str.sigma_boost_I_1mm, str.sigma_boost_I_2mm]
+   bgrms[*, itf] = [str.bg_rms_I1, str.bg_rms_I3, $
+                  str.bg_rms_I_1mm, str.bg_rms_I2]*1000. ; mJy
+   nefd[*, itf] = [str.nefd_I1, str.nefd_I3, $
+                   str.nefd_I_1mm, str.nefd_I2]*1000. ; mJy.s1/2
+   exptauel = [ [exp(-info_all.result_tau_1   /sin(info_all.result_elevation_deg*!dtor))], $
+                [exp(-info_all.result_tau_3   /sin(info_all.result_elevation_deg*!dtor))], $
+                [exp(-info_all.result_tau_1mm /sin(info_all.result_elevation_deg*!dtor))], $
+                [exp(-info_all.result_tau_2mm /sin(info_all.result_elevation_deg*!dtor))] ]
+   nefd0[*, itf] = nefd[*, itf]* sqrt( mean( exptauel^2, dim = 1) )  ; rule of avg(1/nefd^2)
+endfor
+
+; Now P(K) analysis
+; Example in check_map_pk.pro in NP/Ref
+tagmap = ['MAP_I1', 'MAP_I3', 'MAP_I_1MM', 'MAP_I2']
+nmap = 4
+mapind = intarr( nmap)
+for iter = imin, imax do begin
+   root_dir = source_dir+'/'+strtrim(method_num, 2)
+   fitsfile = root_dir+'/iter'+strtrim(iter,2)+'/map_'+source+'_'+ $
+              strtrim(method_num, 2)+version+strtrim(iter,2)+'.fits'
+   fitsfilejk = root_dir+'/iter'+strtrim(iter,2)+'/map_JK_'+source+'_'+ $
+              strtrim(method_num, 2)+version+strtrim(iter,2)+'.fits'
+;   message, /info, 'reading '+fitsfile
+   nk_fits2grid,  fitsfile, grid, header
+   nk_fits2grid,  fitsfilejk, grid_jk, header_jk
+   
+   if iter eq imin then begin
+      tagn = tag_names( grid)
+      junk = grid
+      nk_truncate_filter_map, param, -1, junk, truncate_map = truncate_map
+      for imap = 0, nmap-1 do mapind[ imap] = (where(strmatch( tagn, tagmap[ imap])))[0]
+      gd = where( truncate_map ge 0.99)
+      poymin = intarr( grid.ny)
+      poymax = poymin
+      xmax = intarr( grid.nx)
+      area = fltarr( grid.nx)
+      for i = 0, grid.nx-1 do begin
+         u = where(truncate_map[i, *] ge 0.99, nu)
+         if nu ne 0 then begin
+            poymin[i] = min(u)
+            poymax[i] = max(u)
+            v1 = where( truncate_map[*, poymin[i]] ge 0.99)
+            v2 = where( truncate_map[*, poymax[i]] ge 0.99)
+            xmax[i] = min([max(v1), max(v2)])
+            area[i] = float(xmax[i]-i)*(poymax[i]-poymin[i])
+         endif
+      endfor
+      maxarea = max( area, ibest)
+      i1 = ibest
+      i2 = xmax[ibest]
+      j1 = poymin[ibest]
+      j2 = poymax[ibest]
+      pokerzone = truncate_map*0.
+      pokerzone[i1:i2, j1:j2] = 1.
+      wind, 1, 1, /free, /large
+      imview, truncate_map ge 0.99, header = header, title = 'Covering with a Poker rectangle', $
+              contour = pokerzone, cont_header = header, c_col = 100, levels = 0.99
+      savef1 = outplot_dir+ strupcase(source)+'_'+ strtrim(method_num,2)+ $
+               version+'_PokerRectangle.jpg'
+      if keyword_set(png) or keyword_set(post) then jpgout, savef1, /over  
+   endif
+   for imap = 0, nmap-1 do begin
+      map =       grid.(mapind[imap])*1000 ; mJy/beam
+      map_jk = grid_jk.(mapind[imap])*1000 ; mJy/beam
+      
+      ipoker, map[i1:i2,j1:j2]   , grid.map_reso/60., k, pk2,   /rem, /bypass, /clean
+      ipoker, map_jk[i1:i2,j1:j2], grid.map_reso/60., k, pk2jk, /rem, /bypass, /clean
+      if imap eq 0 and iter eq imin then begin
+                                ; init
+         nkarr = n_elements(k)
+         karr  = k/(2*!dpi)         ; ell to "k"
+         karr *= !arcsec2rad    ; rad^-1 to arcsec^-1
+         karr *= 60.d0          ; arcsec^-1 to arcmin^-1
+         pkall = fltarr( nkarr, nmap, imax+1)
+         pkalljk = fltarr( nkarr, nmap, imax+1)
+                                ; normalisation to rms =1
+         pnorm = (!arcsec2rad*60)^2
+      endif
+      pkall[ *, imap, iter] = pk2   / pnorm
+      pkalljk[ *, imap, iter] = pk2jk / pnorm
+      ;; to check that pnorm is correct:  1st is slightly below the second one (first k has pk=0)
+      ;; print,total(pk2/pnorm *(karr)*deriv(karr))*2*!pi, stddev( map[i1:i2,j1:j2])^2
+   endfor
+endfor
+
+
+; Do a u,v map of the filtering function for the 1 and 2mm, per iter
+; Need info_all and param and reso
+reso_arcmin = param.map_reso/60.
+nscan = n_elements( info_all)
+scanlen = max( info_all.subscan_arcsec)/60.   ; arcmin
+nuv = nint(scanlen*60./(2.)) ; Effectively 1 arcsec resolution
+;;;nuv = nint(scanlen/(2*reso_arcmin))
+nuv2 = nuv*2L
+scan_angle = info_all.scan_angle ; in radian
+filtgrid = fltarr( nuv2, nuv2, 2, imax+1)+1. ; init
+ugrid = fltarr( nuv2, nuv2) ;filtgrid*0
+vgrid = ugrid
+indsym = findgen( nuv2)-nuv
+for jv = 0, nuv2-1 do ugrid[*, jv] = indsym
+for iu = 0, nuv2-1 do vgrid[iu, *] = indsym
+uvradius = sqrt(ugrid^2+vgrid^2)
+uvbeam1 = exp( -uvradius^2 / (2*(scanlen*60.*2.35/!nika.fwhm_nom[0])^2) )
+uvbeam2 = exp( -uvradius^2 / (2*(scanlen*60.*2.35/!nika.fwhm_nom[1])^2) )
+krad = findgen(nuv)             ; k-radius
+kfilt = fltarr( nuv, 2, imax+1) ; azimuthally averaged profile
+kbeam1 = exp( -krad^2 / (2*(scanlen*60.*2.35/!nika.fwhm_nom[0])^2) )
+kbeam2 = exp( -krad^2 / (2*(scanlen*60.*2.35/!nika.fwhm_nom[1])^2) )
+for iter = imin, imax do begin
+                                ; Introduce the nharm factor
+   macum1 = fltarr(nuv2, nuv2)  ; bug corrected : +1
+   macum2 = fltarr(nuv2, nuv2)
+   param.imcm_iter = iter
+   for iscan =0, nscan-1 do begin
+      Nsa = info_all[ iscan].subscan_arcsec $
+            / !nika.fwhm_nom    ; number of beams in a subscan, array of 2: (1mm, 2mm)
+      Nsub_sa = info_all[ iscan].subscan_arcsec/info_all[ iscan].median_scan_speed* $
+                !nika.f_sampling ; a median subscan in samples
+
+      Np = nk_atmb_count_param( info_all[ iscan],  param, 1) ; 1 or 2mm
+;;         sigup = exp((1.505*Np)/Nsa[0]) else sigup = 1.
+;;         noiseup = (1./(1. - Np/Nsub_sa)) else $ ; applies to 1/sigma^2 , no square root
+;; New (more accurate) method, FXD, 28 Apr 2021
+      if param.method_num eq 120 and keyword_set( param.noiseup) then $
+         sigup = 1./nk_atmb_harm_filter(Nsub_sa, $
+                     info_all[ iscan].subscan_arcsec/Nsub_sa, $
+                     !nika.fwhm_nom[0], (Np-1)/2., /k1d) else $
+           sigup = 1.
+      ma = fltarr(nuv2, nuv2)+1
+      ;; mask = where( abs(cos( scan_angle[ iscan])*ugrid+ $
+      ;;                   sin( scan_angle[ iscan])*vgrid) le param.nharm_subscan1mm, nm)
+      ;; if nm ne 0 and iter lt param.atmb_defilter then ma[ mask] = 0.
+;more accurate: Np/2 is about nharm or small (if imcm_iter eq atmb_defilter)
+      maskend = where( abs(cos( scan_angle[ iscan])*ugrid+ $
+                           sin( scan_angle[ iscan])*vgrid) le Np/2., nmend)
+      if nmend ne 0 then ma[ maskend] = 0.
+      ; when imcm_iter eq atmb_defilter, only a little correction is done
+      macum1 = macum1+ ma* sigup ; No opacity taken into account.
+      ;; macum1 = macum1+ ma* sqrt( noiseup)
+;if iter eq 4 and iscan eq 0 then stop, '5 check'
+      
+;;         sigup = exp((1.505*Np)/Nsa[1]) else sigup = 1.
+;;         noiseup = (1./(1. - Np/Nsub_sa)) else $ ; applies to 1/sigma^2 , no square root
+      Np = nk_atmb_count_param( info_all[ iscan],  param, 2) ; 1 or 2mm
+      if param.method_num eq 120 and keyword_set( param.noiseup) then $
+         sigup = 1./nk_atmb_harm_filter(Nsub_sa, $
+                     info_all[ iscan].subscan_arcsec/Nsub_sa, $
+                     !nika.fwhm_nom[1], (Np-1)/2., /k1d) else $
+            sigup = 1.
+      ma = fltarr(nuv2, nuv2)+1
+      ;;  mask = where( abs(cos( scan_angle[ iscan])*ugrid+ $
+      ;;                    sin( scan_angle[ iscan])*vgrid) le param.nharm_subscan2mm, nm)
+      ;; if nm ne 0 and iter lt param.atmb_defilter then ma[ mask] = 0.
+      maskend = where( abs(cos( scan_angle[ iscan])*ugrid+ $
+                           sin( scan_angle[ iscan])*vgrid) le Np/2., nmend)
+      if nmend ne 0 then ma[ maskend] = 0.
+      macum2 = macum2+ ma* sigup
+      ;; macum2 = macum2+ ma* sqrt( noiseup)
+   endfor ; end loop on scans  
+   macum1 /= nscan
+   macum2 /= nscan
+   filtgrid[*, *, 0, iter] = macum1 ;* uvbeam1  ; Don't mix up the beam and the filter
+   filtgrid[*, *, 1, iter] = macum2 ;* uvbeam2
+endfor                              ; end loop on iter
+filtbias = fltarr(2, imax+1)
+; Compute if the filtering is what it was designed for: no bias for a Gaussian
+for iter = imin, imax do begin
+   filtbias[0, iter] = total(filtgrid[*, *, 0, iter]*uvbeam1^2)/ $
+                       total(uvbeam1^2)  ; should be close to 1 !
+   filtbias[1, iter] = total(filtgrid[*, *, 1, iter]*uvbeam2^2)/ $
+                       total(uvbeam2^2)
+   for iuv = 1, nuv-1 do begin
+      gd = where( uvradius le krad[iuv] and uvradius gt krad[ iuv-1], ngd)
+      if ngd ne 0 then begin
+         ma = filtgrid[*, *, 0, iter]
+         kfilt[ iuv, 0, iter] = avg( ma[ gd])
+         ma = filtgrid[*, *, 1, iter]
+         kfilt[ iuv, 1, iter] = avg( ma[ gd])
+      endif
+   endfor
+endfor 
+krad /= scanlen  ; to have k in arcmin-1
+wind, 1, 1, /free, /large
+keepit = [itermerge, iter_max]
+; This bias seems too large (should be below 1 at itermerge)
+print, 'Bias itermerge ', filtbias[*, keepit[0]]
+print, 'Bias last iter ', filtbias[*, keepit[1]]
+if itermerge eq iter_max then keepit = iter_max+[-1, 0]
+my_multiplot, 2, 2, pp, pp1, /rev, gap_x=0.05
+dp = {noerase:1, coltable:4, legend_text:'', imrange : [0, 2], $
+      xmap:ugrid/scanlen, ymap:vgrid/scanlen, charbar:0.9, charsize:0.9, $
+      xtitle:'u [arcmin-1]', ytitle:'v [arcmin-1]', $
+      xrange : [-10, +10.], yrange : [-10, +10.]} ;, inside_bar:1}
+if keepit[0] ge imin and keepit[0] le imax then begin
+   dp.legend_text = 'Filter*beam 1mm, iter '+ strtrim(keepit[0], 2)+ $
+                    ', Fbias= '+ $
+           string(filtbias[0, keepit[0]], format = '(1F10.3)')
+   imview, filtgrid[*, *, 0, keepit[0]]*uvbeam1, dp=dp, position=pp[0,0,*]
+   dp.legend_text = '2mm, iter '+ strtrim(keepit[0], 2)+ ', Fbias= '+ $
+           string(filtbias[1, keepit[0]], format = '(1F10.3)')
+   imview, filtgrid[*, *, 1, keepit[0]]*uvbeam2, dp=dp, position=pp[1,0,*]
+endif
+
+if keepit[1] ge imin and keepit[1] le imax then begin
+   dp.legend_text = '1mm, iter '+ strtrim(keepit[1], 2)+ $
+                    ', Fbias= '+ $
+           string(filtbias[0, keepit[1]], format = '(1F10.3)')
+   imview, filtgrid[*, *, 0, keepit[1]]*uvbeam1, dp=dp, position=pp[0,1,*]
+   dp.legend_text = '2mm, iter '+ strtrim(keepit[1], 2)+ ', Fbias= '+ $
+           string(filtbias[1, keepit[1]], format = '(1F10.3)')
+   imview, filtgrid[*, *, 1, keepit[1]]*uvbeam2, dp=dp, position=pp[1,1,*]
+endif
+savef2 = outplot_dir+ strupcase(source)+'_'+ strtrim(method_num,2)+ version+$
+                             '_PSFilterMap.jpg'
+if keyword_set(png) or keyword_set(post) then jpgout, savef2, /over   
+; Counting sources
+; N(>Snu)=Sum_j (S_j>Snu)/Omegaj  where omegaj= omega( sigma< Sj/SNR_thresh)
+tagmap = ['MAP_I_1MM', 'MAP_I2', 'MAP_VAR_I_1MM', 'MAP_VAR_I2', $
+          'NHITS_1MM', 'NHITS_2']
+nmap3 = n_elements( tagmap)
+mapind = intarr( nmap3)
+;snr_thresh is defined in imcmcall
+sout1 = fltarr( nsou, imax+1)
+sout2 = fltarr( nsou, imax+1)
+count1 = sout1
+count2 = sout2
+dfcount1 = sout1+!values.f_nan  ; so that 0 are not plotted at the end
+dfcount2 = dfcount1
+for iter = imin, imax do begin
+   root_dir = source_dir+'/'+strtrim(method_num, 2)
+   fitsfile = root_dir+'/iter'+strtrim(iter,2)+'/map_'+source+'_'+ $
+              strtrim(method_num, 2)+version+strtrim(iter,2)+'.fits'
+   fitsfilejk = root_dir+'/iter'+strtrim(iter,2)+'/map_JK_'+source+'_'+ $
+              strtrim(method_num, 2)+version+strtrim(iter,2)+'.fits'
+;   message, /info, 'reading '+fitsfile
+   nk_fits2grid,  fitsfile, grid, header
+   nk_fits2grid,  fitsfilejk, grid_jk, header_jk
+   
+   if iter eq imin then begin
+      tagn = tag_names( grid)
+      junk = grid
+      nk_truncate_filter_map, param, -1, junk, truncate_map = truncate_map
+      for imap = 0, nmap3-1 do mapind[ imap] = (where(strmatch( tagn, tagmap[ imap])))[0]
+      gd = where( truncate_map ge 0.99)
+   endif
+   for imap = 0, nmap3/3-1 do begin
+      map =       grid.(mapind[imap])*1000 ; mJy/beam
+      map_var = grid.(mapind[imap+nmap3/3])*1E6 ; mJy/beam
+      hits = grid.(mapind[imap+2*nmap3/3])*1E6 ; mJy/beam
+      nk_map_photometry, map, map_var, hits, $
+                         grid.xmap, grid.ymap, !nika.fwhm_nom[imap], /edu, $
+                         grid_step=!nika.grid_step[imap], $
+                         map_flux = map_flux, map_var_flux = map_var_flux, $
+                         /noplot, param = param, $
+                         noiseup = nup, k_snr = k_snr, $
+                         truncate_map = truncate_map, map_sn_smooth = map_sn, /noboost
+      map_sigma = sqrt(map_var_flux)
+      if imap eq 0 then begin   ; 1mm
+         sout1[*, iter] = psou[ *, iter-imin].fl1
+         for isou = 0, nsou-1 do begin
+                                ; first test if the source is
+                                ; detected, otherwise don't count it
+            if psou[ isou, itermerge-imin].snr1 gt snr_thresh then begin
+               cutsigma = psou[ isou, iter-imin].fl1 / snr_thresh
+               wh = where( map_sigma le cutsigma and truncate_map ge 0.99, nwh)
+;            print, iter, imap, cutsigma, nwh
+               if nwh ne 0 then dfcount1[ isou, iter]= 1./nwh
+            endif
+         endfor
+                                ; Rearrange
+         a = reverse( sort( sout1[ *, iter]))
+         sout1[*, iter] = temporary( sout1[ a, iter])
+         dfcount1[ *, iter] = temporary( dfcount1[ a, iter] $
+                              / (grid.map_reso/60.)^2) ; convert to arcmin^-2
+         count1[*, iter] = total(/cumul,  dfcount1[ *, iter])
+      endif else begin
+         sout2[*, iter] = psou[ *, iter-imin].fl2
+         for isou = 0, nsou-1 do begin
+            if psou[ isou, itermerge-imin].snr2 gt snr_thresh then begin
+               cutsigma = psou[ isou, iter-imin].fl2 / snr_thresh
+               wh = where( map_sigma le cutsigma and truncate_map ge 0.99, nwh)
+               if nwh ne 0 then dfcount2[ isou, iter]= 1./nwh
+            endif
+         endfor
+         a = reverse( sort( sout2[ *, iter]))
+         sout2[*, iter] = temporary( sout2[ a, iter])
+         dfcount2[ *, iter] = temporary( dfcount2[ a, iter] $
+                              / (grid.map_reso/60.)^2) ; convert to arcmin^-2
+         count2[*, iter] = total(/cumul,  dfcount2[ *, iter])
+      endelse
+   endfor
+endfor
+
+;-----------------------------------------------------------------
+; One pdf for all or multiple jpg
+mamdlib_init, 39
+;; loadct, 12, /silent
+;; tvlct, r, g, b, /get
+;; tvlct, reverse(r), reverse(g), reverse(b)
+coltab = 50+50*itind            ; color table
+
+if post ge 1 then begin
+   fxd_ps, /landscape, /color
+endif
+!p.charsize = 0.6
+syms = 0.6
+if post ne 0 then syms = 0.4
+
+      ; First page
+if post eq 0 then prepare_jpgout, 15, xsi=1400,ysi=1000, ct = 39, /norev ;, /icon
+!p.multi = [0, 2, 2]
+yra = [-1, 15.] & yra2 = yra/5.
+plot, /nodata, psou[ *, itermerge-imin].fl1, psou[ *, itermerge-imin].fl1, xra = yra, yra = yra, $
+      xs = 0, ys = 0, xtit = 'Flux(1mm) Final [mJy]', ytit = 'Flux(1mm) iter [mJy]', $
+      title = file_basename( catfinal[ imax-imin]), syms = syms
+if nit gt 1 then for itf = 0, nit - 1 do $
+   oploterror, psou[ *, itermerge-imin].fl1, psou[ *, itf].fl1, psou[ *, itf].efl1, psym = 8, col = 100+40*itf, syms = syms else if nit eq 1 then oploterror, psou[ *].fl1, psou[ *].fl1, psou[ *].efl1, psym = 8, col = 100, syms = syms
+oplot, yra, yra, psym = -3
+
+plot, /nodata, psou[ *, itermerge-imin].fl2, psou[ *, itermerge-imin].fl2, xra = yra2, yra = yra2, $
+      xs = 0, ys = 0, xtit = 'Flux(2mm) Final [mJy]', ytit = 'Flux(2mm) iter [mJy]', title = !stime
+if nit gt 1 then for itf = 0, nit - 1 do $
+   oploterror, psou[ *, itermerge-imin].fl2, psou[ *, itf].fl2, psou[ *, itf].efl2, psym = 8, col = 100+40*itf, syms = syms else if nit eq 1 then oploterror, psou[ *].fl2, psou[ *].fl2, psou[ *].efl2, psym = 8, col = 100, syms = syms
+oplot, yra, yra, psym = -3
+legendastro, reverse('iter '+strtrim( itarr, 2)), psym = replicate(8, nit), $
+             col = reverse(coltab), /top
+
+; Show ratio as a function of ln SNR
+plot, /nodata, [1, 100],/xlog, [1, 100], xra = [0.1, 50], yra = [0, 2], $
+      /xs, ys = 0, xtit = 'SNR1', ytit = 'Flux Ratio 1mm (iter/imax)'
+for isou = 0, nindsou-1 do $
+   oploterror, psou[ indsou[isou], *].snr1, $
+               psou[ indsou[ isou], *].fl1 / psou[ indsou[ isou], itermerge-imin].fl1, $
+               psou[ indsou[ isou], *].efl1 / psou[ indsou[ isou], itermerge-imin].fl1, $
+               psym = -8, syms = syms;, col = 100+ 40*indgen(nfl)
+if nfl gt 1 then for ifl = 0, nfl-1 do $
+   oplot, psou[ indsou, ifl].snr1, psou[ indsou, ifl].fl1 / psou[ indsou, itermerge-imin].fl1, $
+          psym = 8, col = 100+ 40*ifl, syms = syms else $
+            oplot, psou[ indsou].snr1, psou[ indsou].fl1 / psou[ indsou, itermerge-imin].fl1, $
+          psym = 8, col = 100, syms = syms 
+
+plot, /nodata, [1, 100],/xlog, [1, 100], xra = [0.1, 50], yra = [0, 2], $
+      /xs, ys = 0, xtit = 'SNR2', ytit = 'Flux Ratio 2mm (iter/itermerge)'
+for isou = 0, nindsou-1 do $
+   oploterror, psou[ indsou[isou], *].snr2, $
+               psou[ indsou[ isou], *].fl2 / psou[ indsou[ isou], itermerge-imin].fl2, $
+               psou[ indsou[ isou], *].efl2 / psou[ indsou[ isou], itermerge-imin].fl2, $
+               psym = -8, syms = syms;, col = 100+ 40*indgen(nfl)
+if nfl gt 1 then for ifl = 0, nfl-1 do $
+   oplot, psou[ indsou, ifl].snr2, psou[ indsou, ifl].fl2 / psou[ indsou, itermerge-imin].fl2, $
+          psym = 8, col = 100+ 40*ifl, syms = syms else $
+            oplot, psou[ indsou].snr2, psou[ indsou].fl2 / psou[ indsou, itermerge-imin].fl2, $
+          psym = 8, col = 100, syms = syms 
+filejpg =  outplot_dir+ strupcase(source)+'_'+ strtrim(method_num,2)+ version+$
+                  '_SourceFlux.jpg'
+if post eq 0 then jpgout,  filejpg, /over
+
+;stop, '5 check'
+; 1st page bis : show the decrease of flux from iter_max to itermerge
+keepit = [itermerge, iter_max]
+if itermerge eq iter_max then keepit = iter_max+[-1, 0]
+
+; Select all sources
+psim = psou[*, [keepit-imin]]  ; keep the last 2 iterations
+
+if post eq 0 then prepare_jpgout, 25, xsi=1400,ysi=1000, ct = 39, /norev ;, /icon
+!p.multi = [0, 2, 2]
+yra = [-1, 15.] & yra2 = yra/5.
+; The first 2 plots don't add much.
+;; plot, /nodata, psim[ *, 0].fl1, psim[ *, 1].fl1, xra = yra, yra = yra, $
+;;       xs = 0, ys = 0, syms = syms, $
+;;       xtit = 'Flux(1mm) Final[mJy]', ytit = 'Flux Last iter'
+;; oploterror, psim[ *, 0].fl1, psim[ *, 1].fl1, psim[ *, 1].efl1, psym = 8, col = 100, errcol = 100, errthick = 2
+;; oplot, yra, yra, psym = -3, col = 100
+
+;; plot, /nodata, psim[*,0].fl2, psim[*,1].fl2, xra = yra2, yra = yra2, $
+;;       xs = 0, ys = 0, syms = syms, $
+;;       xtit = 'Flux(2mm) Final [mJy]', ytit = 'Flux Last iter'
+;; oploterror, psim[*,0].fl2, psim[ *, 1].fl2, psim[ *, 1].efl2, psym = 8, col = 200, errcol = 200, errthick = 2
+;; oplot, yra2, yra2, psym = -3, col = 200
+
+; Show ratio as a function of ln SNR
+xra = [1, 30]
+plot, /nodata, [1, 100],/xlog, [1, 100], xra = xra, yra = [0, 2], $
+      /xs, ys = 0, syms = syms, $
+      xtit = 'SNR1', ytit = 'Last/Final flux ratio'
+oplot, psim[ *, 0].snr1, psim[ *, 1].fl1/psim[ *, 0].fl1, $
+               psym = 8, col = 100
+oplot, xra, xra*0+1
+;; ratsnr1 = 1./sqrt(1./psim[*, 0].snr1^2+ 1./psim[*, 1].snr1^2)
+;; oploterror, psim[ *, 0].snr1, psim[ *, 1].fl1/psim[ *, 0].fl1, $
+;;                ratsnr1, $
+;;                psym = 8, col = 100, errcol = 100, errthick = 2
+; Keep iter3 snr so the points move only vertically
+;oplot,snarr,fluxrenorm( 7,.5, 2.,1.,snarr),col=50
+plot, /nodata, [1, 100],/xlog, [1, 100], xra = xra, yra = [0, 2], $
+      /xs, ys = 0, syms = syms, xtit = 'SNR2', ytit = 'Last/Final flux ratio'
+oplot, psim[ *, 0].snr2, psim[ *, 1].fl2/psim[ *, 0].fl2, $
+               psym = 8, col = 200
+oplot, xra, xra*0+1
+;; ratsnr2 = 1./sqrt(1./psim[*, 0].snr2^2+ 1./psim[*, 1].snr2^2)
+;; oploterror, psim[ *, 0].snr2, psim[ *, 1].fl2/psim[ *, 0].fl2, $
+;;                ratsnr2, $
+;;                psym = 8, col = 200, errcol = 200, errthick = 2
+;oplot,snarr,fluxrenorm( 7,.5, 2.,1.,snarr),col=50
+
+; Plot SNR from 2 iters
+plot, /nodata, [1, 30], /xlog, [1, 30], /ylog, syms = syms, /xs, /ys, $
+      xtitle = 'SNR iter Final '+strtrim(itarr[keepit[0]-imin], 2),  $
+      ytitle = 'SNR iter Last '+ strtrim(itarr[keepit[1]-imin], 2)+ ', 1mm'
+oplot, psim[*, 0].snr1, psim[*, 1].snr1, psym = 8
+oplot, [1, 500],  [1, 500]
+good = where( psim[*, 0].snr1 ge 3, ngood)
+;; fitexy, psimc[good, 0].snr1, psimc[good, 1].snr1, aa, bb, $
+;;         x_sig=1+0.*psimc[*, 0].snr1, y_sig= 1+0.*psimc[*, 1].snr1, sigma_A_B
+bbmean =  mean(psim[good, 1].snr1/psim[good, 0].snr1)
+oplot, [3, 500], [3, 500]*bbmean, col = 100
+;;oplot, [3, 500], [3, 500]*bb+aa, col = 100
+;; legendastro, /top, /left, string( bb, '+-', sigma_a_b[1], $
+;;                                   format = '(F8.2,A,F8.2)')
+legendastro, /bottom, /right, string( bbmean, $
+                                  format = '(F8.2)')
+plot, /nodata, [1, 30], /xlog, [1, 30], /ylog, /xs, /ys, syms = syms, $
+      xtitle = 'SNR iter Final '+strtrim(itarr[keepit[0]-imin], 2),  $
+      ytitle = 'SNR iter Last '+ strtrim(itarr[keepit[1]-imin], 2)+ ', 2mm'
+oplot, psim[*, 0].snr2, psim[*, 1].snr2, psym = 8
+oplot, [1, 500],  [1, 500]
+good = where( psim[*, 0].snr2 ge 3, ngood)
+;; fitexy, psimc[good, 0].snr2, psimc[good, 1].snr2, aa, bb, $
+;;         x_sig=1+0.*psimc[*, 0].snr2, y_sig= 1+0.*psimc[*, 1].snr2, sigma_A_B
+;; oplot, [3, 500], [3, 500]*bb+aa, col = 100
+;; legendastro, /top, /left, string( bb, '+-', sigma_a_b[1], $
+;;                                   format = '(F8.2,A,F8.2)')
+bbmean =  mean(psim[good, 1].snr2/psim[good, 0].snr2)
+oplot, [3, 500], [3, 500]*bbmean, col = 200
+legendastro, /bottom, /right, string( bbmean, $
+                                  format = '(F8.2)')
+
+
+; 2nd page
+if post eq 0 then prepare_jpgout, 16, xsi=1400,ysi=1000, ct = 39 ;, /norev ;, /icon
+!p.multi = [0, 2, 2]
+plot,  itarr, sigb[0, *], /nodata, title = file_basename( info_file[ imax-imin]), $
+       xtitle = 'Iteration', ytitle = 'Boost factor wrt JK', xs = 0, ys = 0, $
+       xra = [-1, max(itarr)+1], yra = minmax(sigb)
+for icol = 0, 3 do oplot, itarr, sigb[icol, *], col = 100+50*icol, psym = -8, syms = syms
+legendastro, ['I1', 'I3', 'I_1mm', 'I_2mm'], psym = [8, 8, 8, 8], col = 100+50*colarr, /bottom
+plot,  itarr, bgrms[0, *], /nodata, title = file_basename( info_file[ imax-imin]), $
+       xtitle = 'Iteration', ytitle = 'FOV average PS rms [mJy]', xs = 0, ys = 0, $
+       xra = [-1, max(itarr)+1], yra = minmax(bgrms)
+for icol = 0, 3 do oplot, itarr, bgrms[icol, *], col = 100+50*icol, psym = -8, syms = syms
+legendastro, ['I1', 'I3', 'I_1mm', 'I_2mm'], psym = [8, 8, 8, 8], col =  100+50*colarr, /bottom
+plot,  itarr, nefd[0, *], /nodata, title = file_basename( info_file[ imax-imin]), $
+       xtitle = 'Iteration', ytitle = 'Final NEFD, NEFD0 (diamonds) [mJy.s1/2]', xs = 0, ys = 0, $
+       xra = [-1, max(itarr)+1], yra = minmax(nefd)
+for icol = 0, 3 do oplot, itarr, nefd[icol, *], col =  100+50*icol, psym = -8, syms = syms
+for icol = 0, 3 do oplot, itarr, nefd0[icol, *], col =  100+50*icol, psym = -4, syms = syms
+legendastro, ['I1', 'I3', 'I_1mm', 'I_2mm'], $
+             psym = [8, 8, 8, 8], col =  100+50*colarr, /bottom
+uu = where( itarr eq itermerge, nu)
+if nu ne 0 then legendastro, [reform(string(nefd0[*, itermerge-imin], $
+                                            format = '(F10.1)'))], $
+                             psym = [4, 4, 4, 4], col =  100+50*colarr, $
+                             /bottom, /right ; F10.1 (NOT 4F10.1)
+filejpg =  outplot_dir+ strupcase(source)+'_'+ strtrim(method_num,2)+ version+$
+                  '_iter_monit.jpg'
+if post eq 0 then jpgout,  filejpg, /over
+
+; 3rd page
+if post eq 0 then prepare_jpgout, 17, xsi=1400,ysi=1000, ct = 39 ;, /norev ;, /icon
+
+!p.multi = [0, 2, 2]
+title = ['I1', 'I3', 'I_1mm', 'I_2mm']
+yra1 = [0, max(pkall[ *, [0, 1, 2], *])]
+yra2 = [0, max(pkall[ *, 3, *])]
+for imap = 0, nmap-1 do begin
+   if imap eq (nmap-1) then yra = yra2 else yra = yra1
+   plot, /nodata, karr, pkall[ *, imap, imax],  $
+         yra = yra, xs = 0, ys = 0, xtitle = 'k/2pi=1/lambda [arcmin-1]', $
+         ytitle = 'P(k) [(mJy/beam)^2/(arcmin-2)]', $
+         title = file_basename( filpa)+ ' '+title[ imap]
+   for iter = imin, imax do $
+      oplot, karr, pkall[ *, imap, iter], $
+             col =  coltab[ iter-imin], psym = -8, syms = syms
+   for iter = imin, imax do $
+      oplot, karr, pkalljk[ *, imap, iter], $
+             col = coltab[ iter-imin], psym = -4, syms = syms
+endfor
+legendastro, reverse(['iter '+strtrim( itarr, 2), 'JK']), $
+                psym = reverse([replicate(8, nit), 4]), $
+                col = reverse([coltab, coltab[0]]), /top, /right
+filejpg =  outplot_dir+ strupcase(source)+'_'+ strtrim(method_num,2)+ version+$
+           '_Pk.jpg'
+if post eq 0 then jpgout,  filejpg, /over
+
+; page 3b
+if post eq 0 then prepare_jpgout, 18, xsi=1400,ysi=1000, ct = 39 , /norev ;, /icon
+!p.multi = [0, 2, 2]
+title = ['I_1mm', 'I_2mm']
+yra = [0, 1 > max( kfilt)]
+
+for imap = 0, 1 do begin
+   plot, /nodata, krad, kfilt[ *, imap, imin],  $
+         yra = yra, xs = 0, ys = 0, xtitle = 'k/2pi=1/lambda [arcmin-1]', $
+         ytitle = 'F(k) ', $
+         title = file_basename( filpa)+ ' '+title[ imap]
+   for iter = imin, imax do $
+         oplot, krad, kfilt[ *, imap, iter], $
+                col = coltab[ iter-imin], psym = -3
+   if imap eq 0 then oplot, line = 2, krad, kbeam1 else oplot, line = 2, krad, kbeam2
+endfor
+legendastro, ['iter '+strtrim( itarr, 2), 'beam'], $
+             line = [replicate( 0, nit), 2], $
+             col = [coltab, 0], /top, /right
+; Log
+xra = minmax( krad[ where( krad gt 0)])
+yra = [0.01, 1 > max( kfilt)]
+for imap = 0, 1 do begin
+   plot, /nodata, krad, kfilt[ *, imap, imin],  $
+         xra = xra, yra = yra, /xlog, /ylog, xs = 0, ys = 0, xtitle = 'k/2pi=1/lambda [arcmin-1]', $
+         ytitle = 'F(k) ', $
+         title = file_basename( filpa)+ ' '+title[ imap]
+   for iter = imin, imax do $
+         oplot, krad, kfilt[ *, imap, iter], $
+                col = coltab[ iter-imin], psym = -3
+   if imap eq 0 then oplot, line = 2, krad, kbeam1 else oplot, line = 2, krad, kbeam2
+endfor
+legendastro, ['nharm1 = '+string( param.nharm_subscan1mm, format = '(I2)'), $
+              'nharm2 = '+string( param.nharm_subscan2mm, format = '(I2)'), $
+              'atmb_defilter = '+string( param.atmb_defilter, format = '(I2)')], /top, /right
+filejpg =  outplot_dir+ strupcase(source)+'_'+ strtrim(method_num,2)+ version+$
+           '_Filtk.jpg'
+if post eq 0 then jpgout,  filejpg, /over
+                               ; 4th page
+if post eq 0 then prepare_jpgout, 19, xsi=1400,ysi=1000, ct = 39 ;, /norev ;, /icon
+
+!p.multi = [0, 2, 2]
+title = ['I_1mm', 'I_2mm']
+xra1 = [0, max( sout1)]
+xra2 = [0, max( sout2)]
+yra1 = [0, max(count1)]
+yra2 = [0, max(count2)]
+for imap = 0, nmap3/3-1 do begin
+   if imap eq (nmap3/3-1) then begin
+      plot,  sout2[*, 0], count2[*, 0],  $
+             xra = xra2, yra = yra2, xs = 0, ys = 0, $
+             xtitle = 'Flux [mJy]'+ ' '+title[ imap], $
+            ytitle = 'Source count (>Flux) [(arcmin-2)]', $
+            title = 'SNR > '+ string( snr_thresh, format = '(1F5.1)'), /nodata
+      for iter = imin, imax do $
+         oplot, sout2[*, iter], count2[*, iter], $
+                col = coltab[ iter-imin], psym = -8, syms = syms
+   endif else begin
+      plot,  sout1[*, 0], count1[*, 0],  $
+             xra = xra1, yra = yra1, xs = 0, ys = 0, $
+             xtitle = 'Flux [mJy]'+ ' '+title[ imap], $
+            ytitle = 'Source count (>Flux) [(arcmin-2)]', $
+            title = file_basename( filpa), /nodata
+      for iter = imin, imax do $
+         oplot, sout1[*, iter], count1[*, iter], $
+                col = coltab[ iter-imin], psym = -8, syms = syms
+   endelse
+endfor
+legendastro, 'iter '+strtrim( itarr, 2), psym = replicate(8, nit), $
+             col = coltab, /top, /right
+
+; Log
+xra1 = [0.4, max( sout1)]
+xra2 = [0.1, max( sout2)]
+a = where(count1 gt 0, na)
+if na ne 0 then yra1 = minmax(count1[ a]) else yra1 = [1, 2]
+a = where(count2 gt 0, na)
+if na ne 0 then yra2 = minmax(count2[ a]) else yra2 = [1, 2]
+for imap = 0, nmap3/3-1 do begin
+   if imap eq (nmap3/3-1) then begin
+      plot,  sout2[*, 0], count2[*, 0],  $
+             xra = xra2, yra = yra2, /xlog, /ylog, xs = 0, ys = 0, $
+             xtitle = 'Flux [mJy]'+ ' '+title[ imap], $
+            ytitle = 'Source count (>Flux) [(arcmin-2)]', $
+            title = 'SNR > '+ string( snr_thresh, format = '(1F5.1)'), /nodata
+      for iter = imin, imax do $
+         oplot, sout2[*, iter], count2[*, iter], $
+                col = coltab[ iter-imin], psym = -8, syms = syms
+   endif else begin
+      plot,  sout1[*, 0], count1[*, 0],  $
+             xra = xra1, yra = yra1, /xlog, /ylog, xs = 0, ys = 0, $
+             xtitle = 'Flux [mJy]'+ ' '+title[ imap], $
+            ytitle = 'Source count (>Flux) [(arcmin-2)]', $
+            title = file_basename( filpa), /nodata
+      for iter = imin, imax do $
+         oplot, sout1[*, iter], count1[*, iter], $
+                col = coltab[ iter-imin], psym = -8, syms = syms
+   endelse
+endfor
+
+filejpg =  outplot_dir+ strupcase(source)+'_'+ strtrim(method_num,2)+ version+$
+                  '_Count.jpg'
+if post eq 0 then jpgout,  filejpg, /over
+
+savef = outplot_dir+ strupcase(source)+'_'+ strtrim(method_num,2)+ version+$
+                             '_PSNoiseFilterTemp'
+savefin = outplot_dir+ strupcase(source)+'_'+ strtrim(method_num,2)+ version+$
+                             '_PSNoiseFilter'
+if post eq 2 then begin
+   fxd_psout, /rotate, save_file= savef+'.pdf', /over
+;   message, /info,  '5- '+savef+'.pdf'+ ' created'
+endif
+if post eq 1 then begin
+   fxd_psout, /rotate, save_file= savef+'.ps', /over
+   message, /info,  savef+'.ps'+ ' created'
+endif
+
+; Make the pdf from the 2 savef1,2 files
+savef3 = strjoin([savef1, savef2]+' ')
+savef3temp = outplot_dir+ strupcase(source)+'_'+ $
+             strtrim(method_num,2)+ version+$
+                             '_PSNoiseFilterTemp2'
+if post eq 2 then begin
+   spawn, 'which convert', res
+   if keyword_set( strlen( res)) then begin
+      spawn, res+ ' '+ savef3+ ' '+ savef3temp+'.pdf', res1
+;      print, res, res1
+      if not keyword_set( strlen( res1)) then $
+         spawn, 'rm -f '+ savef3 ; clean
+   endif
+   spawn, 'which pdfunite', resun
+   if keyword_set( strlen( resun)) then begin
+      spawn, resun+ ' '+ savef+'.pdf '+ savef3temp+'.pdf '+  $
+             savefin+'.pdf', resun1
+;   print, resun, resun1
+   if not keyword_set( strlen( resun1)) then $
+      spawn, 'rm -f '+savef3temp+'.pdf '+ savef+'.pdf '  ; clean
+   endif
+   message, /info,  '5- '+savefin+'.pdf'+ ' created'
+endif
+
+!p = Oldp 

@@ -1,0 +1,24 @@
+; Init part that must be adapted to each run
+source = 'All'
+obstype = 'Pointing'     ; Select all pointings of the run
+mapsize = 600.                  ; arcsec
+mapreso = 4.                    ; arcsec (4 arcseconds allows to find the pointing per subscan, for anomalous refraction studies)
+nsubscan = 5                    ; One for tuning, 4 for the cross
+
+; This list was done by trial and error (in general one cannot read
+; the data)
+avoid_list = [ '20170223s'+['2', '3', '4', '5', '6', '9'], $ ;awful G34.3
+               '20170227s18', '20170228s127',  $
+               '20170227s378','20170226s427', $
+               '20170223s83', '20170223s84', $
+               '20170224s2','20170224s3','20170224s4', $
+               '20170225s337','20170225s338', '20170227s399' ] ; 27s399 = HLS and Vesta (too weak)
+restore,'$NIKA_SOFT_DIR/Pipeline/Datamanage/Logbook/' + $
+        'Log_Iram_tel_N2R9_v0.save'
+indscan = nk_select_scan( scan, source, obstype, nscans, $
+                          avoid = avoid_list, /all_sources)
+scanall = scan
+scan = scan[indscan]
+scan_list = scan.day + 's' + strtrim(scan.scannum,2)
+print,  'found ' + strtrim(string(nscans), 2) + ' pointings in total '
+;for isc = 0, nscans-1 do print, isc, '  ', scan_list[ isc], ' ', scan[ isc].n_obs, ' ', scan[ isc].object

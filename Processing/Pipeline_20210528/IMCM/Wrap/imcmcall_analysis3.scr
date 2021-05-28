@@ -1,0 +1,104 @@
+; Iterative map making technique
+; Here do the comparison between iterations
+; is a copy of imcmcall_analysis.scr with map differencing on top
+set_plot, 'x'
+;; Done in imcmcall_analysis.scr
+if not defined( param) then begin
+   read_file, filsc, 1, scan_list, /whole
+   input_txt_file = filpa
+@read_imcm_input_txt_file
+   root_dir = !nika.save_dir+'imcm'
+   plot_dir = root_dir+'/Plot'
+endif
+param.version = version
+if keyword_set( itest) then begin
+   imin = round(itest>0)
+   imax = round(itest>0)
+endif else begin
+   imin = 0
+   imax = iter_max
+endelse
+itest = round( itest)
+nscan = n_elements( scan_list)
+if keyword_set( only_plot) then begin
+   imin = iplot_min
+   imax = iplot_max
+endif
+if keyword_set( ps) then begin
+   png = 0
+   post = 1
+endif                           ; in that order (ie before pdf, for pdf to work)
+if keyword_set( pdf) then begin
+   png = 0
+   post = 2
+endif
+if keyword_set( png) then begin
+   post = 0
+   pdf = 0
+endif
+
+file3_plot_arr = strarr(imax+1)
+file3_plot_SNR_arr = strarr(imax+1)
+
+suffix = 'IterDiff'
+for iter = imin, imax do begin
+   
+; Read Maps
+   
+   message, /info, 'reading '+param.project_dir+'/iter'+strtrim(iter,2)+'/map.fits'
+   nk_fits2grid,  param.project_dir+'/iter'+strtrim(iter,2)+'/map.fits', $
+                  gridor, header
+   nk_fits2grid,  param.project_dir+'/iter'+strtrim(iter,2)+'/map_JK.fits', $
+                  gridor_jk
+
+  
+; Plot and measure flux at the center
+; Can correct flux max
+   if iter gt imin then begin
+      grid = gridor
+      grid_jk = gridor_jk
+      grid.map_i1 = grid.map_i1-grid_previous.map_i1
+      grid.map_i2 = grid.map_i2-grid_previous.map_i2
+      grid.map_i3 = grid.map_i3-grid_previous.map_i3
+      grid.map_i_1mm = grid.map_i_1mm-grid_previous.map_i_1mm
+      grid.map_i_2mm = grid.map_i_2mm-grid_previous.map_i_2mm
+      grid_jk.map_i1 = grid_jk.map_i1-grid_jk_previous.map_i1
+      grid_jk.map_i2 = grid_jk.map_i2-grid_jk_previous.map_i2
+      grid_jk.map_i3 = grid_jk.map_i3-grid_jk_previous.map_i3
+      grid_jk.map_i_1mm = grid_jk.map_i_1mm- $
+                          grid_jk_previous.map_i_1mm
+      grid_jk.map_i_2mm = grid_jk.map_i_2mm- $
+                          grid_jk_previous.map_i_2mm
+   
+      if not defined( fmax) then fmax = [5e-3, 2E-3]/5.
+      noboost = 1  ; do not change the noise
+  titleup = ''                  ; just the map
+  titledown = 'JK'  ; the JK map
+@imcmcall_plot.pro
+      file3_plot_arr[ iter] = file_plot ; save for later merge
+; SNR
+      snr_range = [-5.,5.]/2.
+@imcmcall_plot2.pro
+      file3_plot_SNR_arr[ iter] = file_plot ; save for later merge
+      
+      
+   endif                         ; end test on iter>imin
+   grid_previous = gridor
+   grid_jk_previous = gridor_jk
+   
+endfor 
+if (imin+1) le imax then begin
+   all_plot_files = strjoin( [file3_plot_arr[imin+1:imax], file3_plot_SNR_arr[imin+1:imax]]+ '.png ')
+   plot_filout = plot_dir+'/'+source+'_'+strtrim( method_num, 2) +version+ '_IterDiff_QLA'+'.pdf'
+   if keyword_set( pdf) then begin
+      spawn, 'which convert', res
+      if keyword_set( strlen( res)) then begin
+         spawn, res+ ' '+ all_plot_files+ ' '+ plot_filout, res1
+;         print, res, res1
+         if not keyword_set( strlen( res1)) then spawn, 'rm -f '+ all_plot_files  ; clean
+      endif
+   endif
+endif
+; Make a plot of the statistics of Diff
+@imcmcall_plot3.pro
+

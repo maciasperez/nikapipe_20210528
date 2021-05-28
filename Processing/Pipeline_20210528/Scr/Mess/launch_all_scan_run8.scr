@@ -1,0 +1,76 @@
+;;This script gives an example how you can reduce all the NIKA data at once.
+;;
+;; 1 - First, select the scan number list with its corresponding 
+;;     day list. 
+;; 2 - Then launch the procedure nika_pipe_launch_all_scan.pro
+;;     as done in the example below. You can specify the directory in which 
+;;all the results will be saved, default is !nika.plot_dir+'/All_scans'.
+;;
+;; 3 - Take a look in this directory. You shoul find a folder corresponding 
+;;     to all source in your list, each of them containing:
+;;     3.1 - Data quality check plots (atmospheric common mode, detector 
+;;           correlation flag and scanning speed flag)
+;;     3.2 - Flux, SNR, time per pixel and standard deviation maps
+;;     3.3 - Point source flux results fitted at the center of the map
+;;     3.4 - FITS maps and TOI
+;;     3.5 - A log file
+;;     3.6 - NIKA calibration outputs (badpasses, focal plane, unit 
+;;           conversion)
+;;
+
+day= '20140219'
+scan_num_list = lindgen(272)+1
+
+;  Find OK scans
+
+find_ok_scans,day,scan_num_list,newscanlist
+
+scan_num_list = newscanlist
+
+; weird scans so far
+ ; 14, 44
+; NEED TO RUN THIS
+
+day_list = [day+strarr(n_elements(scan_num_list))]
+mydir = "/archeops/macias/NIKA/Data/Figures/Run8/"+day+"/"
+;mydir = "/Users/macias/NIKA/Data/Plots/Run7/"+day+"/"
+
+version = 'v0' 
+;spawn, "rm -rf "+ mydir
+
+
+;;------- My analysis parameters
+reso = 2.0                       ;Resolution of the map
+decor_mode = 'COMMON_MODE_BLOCK' ;The decorrelation method (see nika_pipe_decor.pro)
+d_min = 20.0                     ;Distance min considered on source
+nbloc_min = 15                   ;Minimum number of KIDs for decorrelation
+nsig_bloc = 2                   ;Number of sigma from the mean of the best detectors below which use other KIDs
+cos_sin=1
+
+nika_pipe_launch_all_scan, scan_num_list, day_list, $
+                           dir_plot=mydir, $
+                           version=version,$
+                           size_map_x=size_map_x,$
+                           size_map_y=size_map_y,$
+                           reso=reso,$
+                           decor=decor_mode,$
+                           nsig_bloc=nsig_bloc,$
+                           nbloc_min=nbloc_min,$
+                           d_min=d_min,$
+                           apply_filter=apply_filter,$
+                           low_cut_filter=low_cut_filter,$
+                           cos_sin=cos_sin,$
+                           /rm_toi,$
+                           rm_bp=rm_bp,$
+                           rm_fp=rm_fp,$
+                           rm_uc=rm_uc,$
+                           sens_per_kid=sens_per_kid
+
+
+
+
+
+
+
+
+

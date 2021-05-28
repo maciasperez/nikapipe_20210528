@@ -1,0 +1,53 @@
+; Iterative map making technique
+; Here do a catalog at fixed positions (see Test_imcm_analysis.scr for
+; first step)
+; Analysis part : see Test_imcm
+; Give itest
+if not defined( fmax) then fmax = [5E-3, 2E-3]
+set_plot, 'x'
+;Analysis of sources
+   delvarx, catmerge
+   if keyword_set( k_catmerge) then begin
+      catmerge = k_catmerge
+      print, 'Using provided merge catalog '+catmerge
+   endif else begin
+      catmerge = plot_dir + $
+              '/radec_catinput_merge.txt'
+   endelse
+   
+   catfinal = imcmout_dir+ '/'+strupcase(source)+'_'+ $
+              strtrim(method_num,2)+'_iter'+strtrim(long(iter),2)+ $
+              '_radec_catfinal.txt'
+   if keyword_set( output_cat) then catfinal = imcmout_dir+ '/'+output_cat
+   graph_file = plot_dir+'/'+source+'_meth'+ $
+                strtrim(method_num, 2)+'_iter'+strtrim(iter,2)+ $
+                '_source_detect'
+;Analysis of sources at known position for last iteration to merge
+;catalogs at 1 and 2mm
+; Manually change temp into trim by eliminating 2mm sources which are
+; already detected at 1mm
+   if file_test( catmerge) then begin
+      readcol, catmerge, id, ra, dec, format='A,D,D', comment='#', /silent, delim=','
+      cat_nickname = plot_dir+'/'+source+'_meth'+ strtrim(method_num, 2)+ $
+                     '_iter'+strtrim(iter,2)+'_merge'
+      graph_file = plot_dir+'/'+source+'_merge_meth'+ $
+                   strtrim(method_num, 2)+'_iter'+strtrim(iter,2)+ $
+                   '_source_detect'
+      if keyword_set( k_nocat) then begin ; to be used to get no point sources
+         ra = -1
+         dec = -1
+         print, 'No catalog projected (otherwise change k_nocat)'
+      endif
+      
+      source_anamap_3,  grid, grid_jk, header, source, $
+                        ra1 =ra, dec1 =dec, ra2 = ra, dec2 = dec, $
+                        imr_1mm= [-2, 2]*fmax[0]/5., $
+                        imr_2mm = [-1, 1]*fmax[1]/2, $
+                        snr_thres = 3., png = png, $ $
+                        pdf = pdf, graph_file = graph_file, $
+                        cat_nickname=cat_nickname, $
+                        param = param, /mjy, $ ;/altern, 
+                        title = source+'_merge_meth'+ $
+                        strtrim(method_num, 2)+'_iter'+strtrim(iter,2), $
+                        catall = catfinal
+   endif  else print, 'Make a catmerge catalog from the temp one and rerun last iter ' + catemp+ ' --> '+ catmerge    

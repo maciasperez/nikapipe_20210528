@@ -1,0 +1,113 @@
+; Iterative map making technique
+; Here do a catalog at fixed positions (see Test_imcm_analysis.scr for
+; first step)
+; Analysis part : see Test_imcm
+; Give itest
+if not defined( fmax) then fmax = [5E-3, 2E-3]
+set_plot, 'x'
+;; Done in imcmcall_analysis.scr
+;; read_file, filsc, 1, scan_list, /whole
+;; input_txt_file = filpa
+;; @read_imcm_input_txt_file
+;; root_dir = !nika.save_dir+'imcm'
+;; plot_dir = root_dir+'/Plot'
+param.version = version
+if keyword_set( itest) then begin
+   imin = itest>0
+   imax = itest>0
+endif else begin
+   imin = 0
+   imax = iter_max
+endelse
+if keyword_set( only_plot) then begin
+   imin = iplot_min
+   imax = iplot_max
+endif
+
+for iter = imin, imax do begin
+   
+; Read Maps
+   
+   message, /info, 'reading '+param.project_dir+'/iter'+strtrim(iter,2)+'/map.fits'
+   nk_fits2grid,  param.project_dir+'/iter'+strtrim(iter,2)+'/map.fits', $
+                  grid, header
+   nk_fits2grid,  param.project_dir+'/iter'+strtrim(iter,2)+'/map_JK.fits', $
+                  grid_jk
+   
+
+   if keyword_set( ps) then begin
+      png = 0
+      post = 1
+   endif  ; in that order (ie before pdf, for pdf to work)
+   if keyword_set( pdf) then begin
+      png = 0
+      post = 2
+   endif
+   if keyword_set( png) then begin
+      post = 0
+      pdf = 0
+   endif
+   
+   
+;Analysis of sources
+   delvarx, catmerge
+; Make param
+   input_txt_file = filpa
+@read_imcm_input_txt_file
+   param.version = version
+   
+   if keyword_set( k_catmerge) then begin
+      catmerge = k_catmerge
+      print, 'Using provided merge catalog '+catmerge
+   endif else begin
+      itermerge = iter_max      ; default
+      if param.atmb_defilter ne 0 then begin
+         itermerge = ((param.atmb_defilter - 1) > 0) < iter_max
+         message, /info, 'Merging catalog using iteration before defilter: '+ strtrim( itermerge, 2)
+      endif
+      
+      catmerge = param.project_dir+'/iter'+strtrim(long(itermerge),2)+ $
+                 '/Plots/radec_catinput_merge_v'+version+ '.txt'
+   endelse
+if keyword_set(k_catoutmerge) then catfinal = imcmout_dir+ '/'+k_catoutmerge else $ 
+   catfinal = imcmout_dir+ '/'+ext+'_'+source+'_'+ $
+              strtrim(method_num,2)+version+strtrim(long(iter),2)+ $
+              '_radec_catfinal.txt'
+if n_elements( catfinal) gt 1 then catfinal = catfinal[ iter] ; allow to have different output depending on iteration number
+graph_file = param.project_dir+'/iter'+ $
+             strtrim(iter,2)+'/Plots/'+source+'_meth'+ $
+             strtrim(method_num, 2)+version+strtrim(iter,2)+ $
+             '_source_detect'
+;Analysis of sources at known position for last iteration to merge
+;catalogs at 1 and 2mm
+; Manually change temp into trim by eliminating 2mm sources which are
+; already detected at 1mm
+;   print, catmerge, ' exists???'
+if file_test( catmerge) then begin
+      readcol, catmerge, id, ra, dec, format='A,D,D', comment='#', /silent, delim=','
+      cat_nickname = param.project_dir+'/iter'+strtrim(long(iter),2)+ $
+                     '/Plots/'+source+'_meth'+ strtrim(method_num, 2)+ $
+                     version+strtrim(iter,2)+'_merge'
+      graph_file = param.project_dir+'/iter'+ $
+                   strtrim(iter,2)+'/Plots/'+source+'_merge_meth'+ $
+                   strtrim(method_num, 2)+version+strtrim(iter,2)+ $
+                   '_source_detect'
+      if keyword_set( k_nocat) then begin ; to be used to get no point sources
+         ra = -1
+         dec = -1
+         print, 'No catalog projected (otherwise change k_nocat)'
+      endif
+      
+      source_anamap_3,  grid, grid_jk, header, source, $
+                        ra1 =ra, dec1 =dec, ra2 = ra, dec2 = dec, $
+                        imr_1mm= [-2, 2]*fmax[0]/5., $
+                        imr_2mm = [-1, 1]*fmax[1]/2, $
+                        snr_thres = snr_thresh, png = png, $ $
+                        pdf = pdf, graph_file = graph_file, $
+                        cat_nickname=cat_nickname, $
+                        param = param, /mjy, altern = param.k_snr_method eq 2, $
+                        title = source+'_merge_meth'+ $
+                        strtrim(method_num, 2)+version+'_iter'+strtrim(iter,2), $
+                        catall = catfinal
+   endif else print, 'Nothing done: iter is not itermax OR Make a catmerge catalog from the temp one and rerun last iter ' + catemp+ ' --> '+ catmerge    
+endfor

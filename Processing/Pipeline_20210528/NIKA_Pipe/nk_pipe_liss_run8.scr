@@ -1,0 +1,158 @@
+; Try to find sensitivity with Rémi's script 
+; Do all sources of a project at a time
+; with the same method as pipe8
+; Do all scans with new lissopt
+; Copied from pipeline/nika_pipe_liss.scr
+; Adapted to V2
+
+; give in the AllScanLissPipeV2.scr script
+; project_name 
+; vall
+; badscan
+; iost= index of the first objects to be reduced (0 standard, useful when bugs
+; make failure in the pipeline)
+
+sav = 'v2'  ; do not change
+restore, file = '$NIKA_SAVE_DIR/Log_Iram_tel_' + sav + '.save'
+; If this file does not exist, must be copied from
+; Pipeline/Datamanage/Logbook/
+
+gdsc = where( strtrim(scan.projid, 2) eq project_name and $
+              strupcase( scan.obstype) eq 'LISSAJOUS' and $
+              scan.tau1mm gt 0 and scan.skynoi1mm4 ne 0, ngdsc)
+obj = strtrim( strupcase(scan[ gdsc].object), 2)
+iobjsort = sort( obj)
+indna = uniq( obj[iobjsort])
+nameobj = obj[ iobjsort[ indna]]
+nobj = n_elements( nameobj)
+; To start do
+if keyword_set( k_idone) then idone = k_idone $
+  else idone = replicate( (-1), nobj)
+inored = replicate( 0, nobj)
+inomap = replicate( 0,  nobj)
+
+for iobj = iost, nobj-1 do begin
+   source = nameobj[ iobj]       ;Name of the source
+   version = vall                ; Not necessary anymore
+   print, 'Start source '+source+ ' of the project '+project_name
+   print, 'Obj # ', iobj, ' out of ', nobj
+   ind = where( obj eq source, nind)
+   if nind eq 0 then message, 'That should not happen, check object names'
+   scan_num_list = scan[ gdsc[ ind]].scannum
+   day_list = scan[ gdsc[ ind]].day
+   scl = bytarr( nind)
+   if badscan[0] ne '0' then begin
+      match, day_list+'s'+strtrim( scan_num_list, 2), badscan, ia, ib
+      if ia[0] ne (-1) then scl[ ia] = 1
+   endif
+   if idone[ iobj] ge 0  $
+     then scl[0:idone[ iobj] < (nind-1)] = 1 
+; scans already checked but leave the last valid one in
+   gsc = where( scl eq 0, ngsc)
+   if ngsc eq 0 then begin
+      print, 'Nothing to be reduced with that source '+ source
+      continue
+   endif
+   scan_num_list = scan_num_list[ gsc]
+   day_list = day_list[ gsc]
+; Determine if it is a strong source by the integration time minimum
+   expti = scan[ gdsc[ind[gsc]]].exptime
+   if ngsc gt 1 then medinteg = min( expti) else medinteg = expti
+
+;;------- Do you want something specific
+   k_azel = azel                ; by default
+   noscanred = inored[ iobj]
+   
+   scan_list = day_list+'s'+zeropadd( scan_num_list, 4)
+   print, scan_list
+;; Define parameters and output directories
+   nk_default_param, param
+;deprecated   param.sourcename = strtrim(source, 2)
+   param.source = strtrim(source, 2)
+   param.silent            = keyword_set( k_silent)
+   if not keyword_set( k_azel) then begin
+      param.map_center_ra  = scan[ gdsc[ind[gsc[0]]]].ra_deg
+ ; put the center coordinates in degrees
+      param.map_center_dec = scan[ gdsc[ind[gsc[0]]]].dec_deg
+   endif else param.map_proj = 'AZEL' ; default is 'RADEC'
+
+   param.map_xsize         = size_map_x
+   param.map_ysize         = size_map_y
+   param.map_reso          = reso
+   if keyword_set( k_faint) then $
+      param.glitch_width      = 200 ; improves glitch detection when there's no planet to fear
+   param.decor_per_subscan = 1  ; default yes is safe
+;;;   param.decor_per_subscan = 'yes'  ; default yes is safe
+
+   plot_proj_dir = !nika.plot_dir+'/'+ project_name
+   if file_test( plot_proj_dir, /dir) ne 1 then $
+      spawn, 'mkdir -p '+ plot_proj_dir
+   param.project_dir = plot_proj_dir + '/'+source
+   param.do_plot  = 0
+   param.plot_png = 0
+   param.plot_ps  = 0           ; either or (do_plot=1 is needed for plot_ps=1)
+
+   param.version  = version     ; String version of the processing
+
+   if file_test( param.project_dir, /dir) ne 1 then $
+      spawn, 'mkdir -p '+param.project_dir
+
+;; Derive a mask to iterate
+   param.decor_cm_dmin = d_min
+; Obsolete
+;;    nk_init_map_struct, param, map_struct
+;;    d = sqrt( (map_struct.xmap)^2 + (map_struct.ymap)^2)
+;;    map_struct.mask_source = long( d ge d_min) ; 0 on source
+; Mode to preserve calibration in the _MASK
+;;   param.decor_method      = 'COMMON_MODE_BAND_MASK'
+; Standard mode
+   param.decor_method = 'common_mode_kids_out'
+   param.iconic = 1
+   param.interpol_common_mode = 1
+   param.polynomial        = 0
+   param.decor_elevation   = 1
+   param.flag_sat = 0  ; not working for 1mm
+   filing  = 1 ; 1 means process only unprocessed files (put 0 to reprocess everything) 
+; Obsolete
+;;;   preproc = 1
+
+; erase all processed files (comment if no reprocessing needed)
+   if keyword_set( k_doall) then nk_reset_filing, param, scan_list
+; BP=being processed CHANGED to UP=unprocessed for SCAN_LIST
+
+   nk, scan_list, param=param, filing=filing
+  
+;;   nk, scan_list, param=param, filing=filing, map_struct=map_struct, $
+;;       preproc=preproc
+   
+   param.do_plot = 1
+   if not keyword_set( png) then begin
+      param.plot_png = 0
+      param.plot_ps = 1
+   endif else begin             ; postscript by default
+      param.plot_png = 1
+      param.plot_ps = 0
+   endelse
+   param.latex_pdf = 0         ; 1 not yet working: no noise_conv_ maps nor SNR
+   param.clean_tex = 0
+   param.name4file = source+'_'+scan_list[0]
+   
+   nk_init_info,param,info
+   info.status = 0
+   nk_average_scans, param, scan_list, output_maps, info = info, $
+        ps = param.plot_ps, png = param.plot_png
+;; obsolete
+;;   nk_average_scans, param.project_dir+'/v_'+strtrim(param.version,2), $
+  ;;                   scan_list, output_maps, /noplot
+   if keyword_set( png) then begin
+      filejpg = param.project_dir+'/Plots/'+ $
+                'Combine_'+source+ '_'+ scan_list[0]+ $
+                '_nsc'+strtrim(n_elements( scan_list), 2)+'.jpg'
+      jpgout,  filejpg, /over
+      print, 'Jpeg file made: ', filejpg
+   endif
+
+endfor                          ; end of iobj
+
+
+
