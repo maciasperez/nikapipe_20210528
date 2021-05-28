@@ -1,0 +1,202 @@
+; Iterative map making technique
+; Analysis part : see Test_imcm
+set_plot, 'x'
+read_file, filsc, 1, scan_list, /whole
+input_txt_file = filpa
+@read_imcm_input_txt_file
+root_dir = !nika.save_dir+ext+'/'+source+'/'+strtrim(method_num, 2)
+plot_dir = root_dir+'/Plot'
+spawn, 'mkdir -pv '+ plot_dir
+param.version = version
+if keyword_set( itest) then begin
+   imin = round(itest>0)
+   imax = round(itest>0)
+endif else begin
+   imin = 0
+   imax = iter_max
+endelse
+itest = round( itest)
+nscan = n_elements( scan_list)
+if keyword_set( only_plot) then begin
+   imin = iplot_min
+   imax = iplot_max
+endif
+
+file_plot_arr = strarr(imax+1)
+file_plot_SNR_arr = strarr(imax+1)
+suffix = ''
+for iter = imin, imax do begin
+   
+; Read Maps
+   
+   message, /info, 'reading '+param.project_dir+'/iter'+strtrim(iter,2)+'/map.fits'
+   nk_fits2grid,  param.project_dir+'/iter'+strtrim(iter,2)+'/map.fits', $
+                  grid, header
+   nk_fits2grid,  param.project_dir+'/iter'+strtrim(iter,2)+'/map_JK.fits', $
+                  grid_jk
+
+; Save the output map to a more readable name and out the iter
+; directories
+   itermerge = iter_max         ; default
+   if param.atmb_defilter ne 0 then begin
+      itermerge = ((param.atmb_defilter - 1) > 0) < iter_max
+   endif
+   if not keyword_set( only_plot) and iter eq itermerge then begin
+     fileout = param.project_dir+'/map_'+source+'_'+ strtrim(method_num,2)+version+strtrim(iter,2)+'.fits' 
+     message, /info, 'Copying '+param.project_dir+'/iter'+strtrim(iter,2)+'/map.fits to '+ fileout
+     cmd = '/bin/cp '+ param.project_dir+'/iter'+strtrim(iter,2)+'/map.fits ' + fileout
+     spawn, cmd, res
+
+     fileout = param.project_dir+'/map_JK_'+source+'_'+ strtrim(method_num,2)+version+strtrim(iter,2)+'.fits' 
+     message, /info, 'Copying '+param.project_dir+'/iter'+strtrim(iter,2)+'/map_JK.fits to '+ fileout
+     cmd = '/bin/cp '+ param.project_dir+'/iter'+strtrim(iter,2)+'/map_JK.fits ' + fileout
+     spawn, cmd, res
+  endif
+
+  ; Also save all iterations locally
+  if not keyword_set( only_plot) then begin
+     fileout = param.project_dir+'/iter'+strtrim(iter,2)+'/map_'+source+'_'+ $
+               strtrim(method_num,2)+version+strtrim(iter,2)+'.fits' 
+     message, /info, 'Copying '+param.project_dir+'/iter'+strtrim(iter,2)+'/map.fits to '+ fileout
+     cmd = '/bin/cp '+ param.project_dir+'/iter'+strtrim(iter,2)+'/map.fits ' + fileout
+     spawn, cmd, res
+
+     fileout = param.project_dir+'/iter'+strtrim(iter,2)+'/map_JK_'+source+'_'+ $
+               strtrim(method_num,2)+version+strtrim(iter,2)+'.fits' 
+     message, /info, 'Copying '+param.project_dir+'/iter'+strtrim(iter,2)+'/map_JK.fits to '+ fileout
+     cmd = '/bin/cp '+ param.project_dir+'/iter'+strtrim(iter,2)+'/map_JK.fits ' + fileout
+     spawn, cmd, res
+  endif
+  
+; Plot and measure flux at the center
+; Can correct flux max
+  if not defined( fmax) then fmax = [5e-3, 2E-3]
+  noboost = 1                   ; 0=allow to boost the noise to have a normalized histogram
+  titleup = ''                  ; just the map
+  titledown = 'JK'  ; the JK map
+@imcmcall_plot.pro
+  file_plot_arr[ iter] = file_plot  ; save for later merge
+; SNR
+  snr_range = [-5.,5.]
+@imcmcall_plot2.pro
+  file_plot_SNR_arr[ iter] = file_plot  ; save for later merge
+  
+   if keyword_set( ps) then begin
+      png = 0
+      post = 1
+   endif  ; in that order (ie before pdf, for pdf to work)
+   if keyword_set( pdf) then begin
+      png = 0
+      post = 2
+   endif
+   if keyword_set( png) then begin
+      post = 0
+      pdf = 0
+   endif
+   
+   if nscan gt 2 then $
+      source_ql2, param.project_dir+'/iter'+strtrim(iter,2), $
+              param.version, scan_list, /recal_coeff, thick = 2, $
+                  png = png, ps = post, info_all = info_all, param = param, /chrono $
+   else print, 'not enough scans to make housekeeping plots'
+                                ; Rename file more consistently
+   plot_dirql = param.project_dir+'/iter'+strtrim(iter,2)+'/Plots/'
+   filin = 'source_ql_v'+ strtrim(param.version, 2)+'.pdf'
+   filout = source+ '_'+ strtrim(method_num,2)+ strtrim(param.version, 2) $
+            +strtrim(long(iter),2)+'_source_ql.pdf'
+   if file_test( plot_dirql+filin) then $
+      spawn, '/bin/mv ' + plot_dirql+filin+ ' '+ plot_dirql+filout
+   
+;Analysis of sources
+   catemp = param.project_dir+'/iter'+strtrim(long(iter),2)+ $
+            '/Plots/radec_catinput_temp_v'+version+ '.txt'
+   catmerge = param.project_dir+'/iter'+strtrim(long(iter),2)+ $
+              '/Plots/radec_catinput_merge_v'+version+ '.txt'
+   catfinal = imcmout_dir+'/'+ext+'_'+source+'_'+ $
+              strtrim(method_num,2)+version+strtrim(long(iter),2)+ $
+              '_radec_catfinal.txt'
+   
+   cat_nickname = param.project_dir+'/iter'+strtrim(long(iter),2)+ $
+                  '/Plots/'+source+'_meth'+ strtrim(method_num, 2)+ $
+                  version+strtrim(iter,2)
+   
+   graph_file = param.project_dir+'/iter'+ $
+                strtrim(iter,2)+'/Plots/'+source+'_meth'+ $
+                strtrim(method_num, 2)+version+strtrim(iter,2)+ $
+                '_source_detect'
+   source_anamap_3,  grid, grid_jk, header, source,  $
+                     imr_1mm= [-2, 2]*fmax[0]/5., imr_2mm = [-1, 1]*fmax[1]/2, $
+                     snr_thresh = snr_thresh, png = png, $ $
+;ps = ps, $ postscript not working, yes with pdf
+                     pdf = pdf, graph_file = graph_file, $
+                     cat_nickname=cat_nickname, $
+                     param = param, /mjy, altern = param.k_snr_method eq 2, $
+                     title = source+'_meth'+ $
+                     strtrim(method_num, 2)+version+'_iter'+strtrim(iter,2), $
+                     catall = catemp, catmerge = catmerge
+                                ; altern not used any more as the 2
+                                ; methods give the same results within
+                                ; 2 percent and mb method deals with
+                                ; overlapping sources (If one wants it
+                                ; explicitly, set k_snr_method=2)
+   cat_nickname = param.project_dir+'/iter'+strtrim(long(iter),2)+ $
+                  '/Plots/'+source+'_JK_meth'+ strtrim(method_num, 2)+ $
+                  version+strtrim(iter,2)
+   graph_file = param.project_dir+'/iter'+ $
+                strtrim(iter,2)+'/Plots/'+source+'_meth'+ $
+                strtrim(method_num, 2)+version+strtrim(iter,2)+ $
+                '_source_JK_detect'
+   source_anamap_3,  grid_jk, grid_jk, header, source,  $
+                     imr_1mm= [-2, 2]*fmax[0]/5., imr_2mm = [-1, 1]*fmax[1]/2, $
+                     snr_thresh = snr_thresh, png = png, $
+                     pdf = pdf, graph_file = graph_file, $
+                     cat_nickname=cat_nickname, $
+                     altern = param.k_snr_method eq 2, $
+                     param = param, /mjy, title = source+'_JK_meth'+ $  
+                     strtrim(method_num, 2)+version+'_iter'+strtrim(iter,2)
+   
+endfor
+iter--
+all_plot_files = strjoin( [file_plot_arr[imin:imax], file_plot_SNR_arr[imin:imax]]+ '.png ')
+plot_filout = plot_dir+'/'+source+'_'+strtrim( method_num, 2) +version+ '_QLA'+'.pdf'
+spawn, 'which convert', res
+if keyword_set( strlen( res)) then begin
+   spawn, res+ ' '+ all_plot_files+ ' '+ plot_filout, res1
+;   print, res, res1
+   if not keyword_set( strlen( res1)) then $
+      spawn, 'rm -f '+ all_plot_files ; clean
+endif
+
+if nscan gt 2 then print, n_elements( info_all), ' scans, ', $
+       round(info_all[0].subscan_arcsec/info_all[0].median_scan_speed* $
+             info_all[0].nsubscans), ' s, ', $
+       round(info_all[0].subscan_arcsec/info_all[0].median_scan_speed), ' s, ', $
+       round(info_all[0].subscan_arcsec), ' arcsec, ', $
+       round(info_all[0].median_scan_speed), ' arcsec/s, ', $
+       round(info_all[0].nsubscans), ' subscans, ', $
+       0.1*round(info_all[0].subscan_arcsec/60*10), ' arcmin by ', $
+       0.1*round((info_all[0].nsubscans-1)*info_all[0].subscan_step/60.*10), $
+       format = '(I3,A,I5,A,I4,A,I5,A,I4,A,I3,A,F5.1,A,F5.1)'
+if nscan gt 2 then begin
+   if strtrim( method_num, 2) eq '120' then begin
+      Nsub_sa = info_all[0].subscan_arcsec/info_all[0].median_scan_speed* $
+                !nika.f_sampling
+      Np1 = nk_atmb_count_param( info_all[0],  param, 1) 
+      Np2 = nk_atmb_count_param( info_all[0],  param, 2) 
+      sigd1 = nk_atmb_harm_filter(Nsub_sa, info_all[0].subscan_arcsec/Nsub_sa, $
+                                 !nika.fwhm_nom[0], (Np1-1)/2., /k1d)
+      sigd2 = nk_atmb_harm_filter(Nsub_sa, info_all[0].subscan_arcsec/Nsub_sa, $
+                                 !nika.fwhm_nom[1], (Np2-1)/2., /k1d)
+      print, 'Corrected Filtering is by ', [sigd1, sigd2], format = '(A,2F7.3)'
+   ;; print, 'Filtering is by ',  1-1.5*(1.+2* $
+   ;;                                    [param.nharm_subscan1mm, param.nharm_subscan2mm]+2)/ $
+   ;;        (round(info_all[0].subscan_arcsec)/ $
+   ;;         !nika.fwhm_nom), format = '(A,2F7.3)'
+   print, 'Preserved scales are below ', round(info_all[0].subscan_arcsec) / $
+          ([param.nharm_subscan1mm, param.nharm_subscan2mm]+1),  ' arcseconds', $
+          format = '(A,2F6.0,A)'
+   print, 'For nharm = ', [param.nharm_subscan1mm, param.nharm_subscan2mm]
+;print, 'Check the catmerge catalog produced from the temp one and run Test_imcm_analysis2 ' + catemp+ ' --> '+ catmerge    
+  endif
+endif
+

@@ -1,0 +1,112 @@
+; Iterative map making technique
+; Analysis part : see Test_imcm
+set_plot, 'x'
+   imin = iplot_min
+   imax = iplot_max
+
+file_plot_arr = strarr(imax+1)
+file_plot_SNR_arr = strarr(imax+1)
+suffix = ''
+;;;; for iter = imin, imax do begin
+   iter = iterin
+; Read Maps
+   
+   message, /info, 'reading '+project_dir+'/iter'+strtrim(iter,2)+'/map.fits'
+   nk_fits2grid,  project_dir+'/iter'+strtrim(iter,2)+'/map.fits', $
+                  grid, header
+   nk_fits2grid,  project_dir+'/iter'+strtrim(iter,2)+'/map_JK.fits', $
+                  grid_jk
+   nk_truncate_filter_map, param, info, grid, truncate_map = truncate_map 
+   nk_truncate_filter_map, param, info, grid_jk, truncate_map = truncate_map 
+; Plot and measure flux at the center
+; Can correct flux max
+  if not defined( fmax) then fmax = [5e-3, 2E-3]
+  titleup = ''                  ; just the map
+  titledown = 'JK'
+  noboost = 0  ; 0=allow to boost the noise to have a normalized histogram
+@imcmcall_plot.pro
+  file_plot_arr[ iter] = file_plot ; save for later merge
+  print, 'Applying boost at 1 and 2mm of ', sigboostarr[[2, 3]]
+  grid.map_var_i1    = grid.map_var_i1* sigboostarr[0]^2
+  grid.map_var_i3    = grid.map_var_i3* sigboostarr[1]^2
+  grid.map_var_i_1mm = grid.map_var_i_1mm* sigboostarr[2]^2
+  grid.map_var_i2    = grid.map_var_i2* sigboostarr[3]^2
+  grid.map_var_i_2mm = grid.map_var_i_2mm* sigboostarr[3]^2
+  grid_JK.map_var_i1    = grid_JK.map_var_i1* sigboostarr[0]^2
+  grid_JK.map_var_i3    = grid_JK.map_var_i3* sigboostarr[1]^2
+  grid_JK.map_var_i_1mm = grid_JK.map_var_i_1mm* sigboostarr[2]^2
+  grid_JK.map_var_i2    = grid_JK.map_var_i2* sigboostarr[3]^2
+  grid_JK.map_var_i_2mm = grid_JK.map_var_i_2mm* sigboostarr[3]^2
+; SNR
+  snr_range = [-5.,5.]
+@imcmcall_plot2.pro
+  file_plot_SNR_arr[ iter] = file_plot  ; save for later merge
+  
+   if keyword_set( ps) then begin
+      png = 0
+      post = 1
+   endif  ; in that order (ie before pdf, for pdf to work)
+   if keyword_set( pdf) then begin
+      png = 0
+      post = 2
+   endif
+   if keyword_set( png) then begin
+      post = 0
+      pdf = 0
+   endif
+   
+
+;Analysis of sources
+   catemp = plot_dir + $
+            '/radec_catinput_temp.txt'
+   catmerge = plot_dir + $
+              '/radec_catinput_merge.txt'
+   catfinal = imcmout_dir+'/'+strupcase(source)+'_'+ $
+              strtrim(method_num,2)+'_iter'+strtrim(long(iter),2)+ $
+              '_radec_catfinal.txt'
+   
+   cat_nickname = imcmout_dir+'/'+source+'_meth'+ strtrim(method_num, 2)+ $
+                  '_iter'+strtrim(iter,2)
+   
+   graph_file = plot_dir+'/'+source+'_meth'+ $
+                strtrim(method_num, 2)+'_iter'+strtrim(iter,2)+ $
+                '_source_detect'
+   source_anamap_3,  grid, grid_jk, header, source,  $
+                     imr_1mm= [-2, 2]*fmax[0]/5., imr_2mm = [-1, 1]*fmax[1]/2, $
+                     snr_thresh = snr_thresh, png = png, $ $
+;ps = ps, $ postscript not working, yes with pdf
+                     pdf = pdf, graph_file = graph_file, $
+                     cat_nickname=cat_nickname, $
+                     param = param, /mjy, $;  /altern, 
+                     title = source+'_meth'+ $
+                     strtrim(method_num, 2)+'_iter'+strtrim(iter,2), $
+                     catall = catemp, catmerge = catmerge
+                                ; altern not used any more as the 2
+                                ; methods give the same results within
+                                ; 2 percent and mb method deals with
+                                ; overlapping sources
+   cat_nickname = plot_dir+ $
+                  '/'+source+'_JK_meth'+ strtrim(method_num, 2)+ $
+                  '_iter'+strtrim(iter,2)
+   graph_file = plot_dir + $
+                '/'+ source+'_meth'+ $
+                strtrim(method_num, 2)+'_iter'+strtrim(iter,2)+ $
+                '_source_JK_detect'
+   source_anamap_3,  grid_jk, grid_jk, header, source,  $
+                     imr_1mm= [-2, 2]*fmax[0]/5., imr_2mm = [-1, 1]*fmax[1]/2, $
+                     snr_thresh = snr_thresh, png = png, $
+                     pdf = pdf, graph_file = graph_file, $
+                     cat_nickname=cat_nickname, $
+                     param = param, /mjy, title = source+'_JK_meth'+ $  ;/altern, 
+                     strtrim(method_num, 2)+'_iter'+strtrim(iter,2)
+   
+all_plot_files = strjoin( [file_plot_arr[imin:imax], file_plot_SNR_arr[imin:imax]]+ '.png ')
+plot_filout = plot_dir+'/'+source+'_'+strtrim( method_num, 2) + '_QLA'+'.pdf'
+spawn, 'which convert', res
+if keyword_set( strlen( res)) then begin
+   spawn, res+ ' '+ all_plot_files+ ' '+ plot_filout, res1
+;   print, res, res1
+   if not keyword_set( strlen( res1)) then spawn, 'rm -f '+ all_plot_files ; clean
+endif
+
+

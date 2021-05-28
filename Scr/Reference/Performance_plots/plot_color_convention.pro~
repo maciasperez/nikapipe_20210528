@@ -1,0 +1,113 @@
+pro plot_skydip_selection
+
+
+  png=0
+  outfile = 'color_convention_temperature'
+  outplot, file=outfile, png=png
+  window, 0
+  ns = 30                                   
+  index = indgen(ns)                        
+  data = randomn(seed, ns)
+  plot, index, data, col=0, /nodata, yr=[-1, 3]
+  oplot, index, data/10.+1., psym=8, col=210   
+  oplot, index, data/10.+0.7, psym=8, col=250
+  oplot, index, data/10.-0.5, psym=8, col=75
+  legendastro, ['A1, ct=39, col=210', 'A3, ct=39, col=250', 'A2, ct=39, col=75'], col=[210, 250, 75], textcol=[210, 250, 75], box=0
+
+  outfile = 'color_convention_frequency'
+  outplot, file=outfile, png=png
+  ns = 30
+  window, 1                                
+  index = indgen(ns)                        
+  data = randomn(seed, ns)
+  plot, index, data, col=0, /nodata, yr=[-1, 3]
+  oplot, index, data/10.+1., psym=8, col=50   
+  oplot, index, data/10.+0.7, psym=8, col=85
+  oplot, index, data/10.-0.5, psym=8, col=230
+  legendastro, ['A1, ct=39, col=50', 'A3, ct=39, col=85', 'A2, ct=39, col=230'], col=[50, 85, 230], textcol=[50, 85, 230], box=0
+  
+  
+  ;; plot pour N2R9
+  runname = 'N2R9'
+  dir     = getenv('HOME')+'/NIKA/Plots/Commissioning_doc/'
+  
+  dt_max  = 1.6d0 ; K 
+  rms_max = 1.5d4 ; Hz
+  
+;;----------------------------------------------------------------------------------
+;; READ  OPACITY ESTIMATION OUTPUTS
+;;----------------------------------------------------------------------------------  
+  output_dir = getenv('HOME')+'/NIKA/Plots/'+runname+'/Opacity'
+  base_file_suffixe = '_ref'
+  
+  ;; v0
+  file_suffixe = base_file_suffixe+'_v0'
+  
+  testkidpar_file = output_dir+'/kidpar_C0C1_'+strupcase(runname)+strtrim(file_suffixe, 2)+'.fits'
+  print, "v0 kidpar = ", testkidpar_file
+  kidpar_v0 = mrdfits(testkidpar_file, 1)
+  
+  testsave_file = output_dir+'/all_skydip_fit_'+strupcase(runname)+strtrim(file_suffixe,2)+'.save'
+  print, "v0 skydip struct = ",  testsave_file
+  restore, testsave_file, /v
+  skdout_v0 = skdout
+  
+  ;; v1
+  suf = '_baseline'
+  file_suffixe = base_file_suffixe+suf
+  
+  testkidpar_file = output_dir+'/kidpar_C0C1_'+strupcase(runname)+strtrim(file_suffixe, 2)+'.fits'
+  print, "v1 kidpar = ", testkidpar_file
+  kidpar_v1 = mrdfits(testkidpar_file, 1)
+  
+  testsave_file = output_dir+'/all_skydip_fit_'+strupcase(runname)+strtrim(file_suffixe,2)+'.save'
+  print, "v1 skydip struct = ",  testsave_file
+  restore, testsave_file, /v
+  skdout_v1 = skdout
+
+;;----------------------------------------------------------------------------------
+;; PLOT
+;;----------------------------------------------------------------------------------  
+
+  
+  scan_list = skdout_v0.scanname 
+  nsc       = n_elements(scan_list)  
+  index_v0  = indgen(nsc)
+
+  my_match, skdout_v1.scanname, scan_list, suba, subb
+  index_v1  = index_v0(subb)
+
+  
+  wind, 1, 1, /free, xsize=700, ysize=550 
+  outfile = dir+'plot_skydip_selection_median_rms'
+  outplot, file=outfile, png=png, ps=ps
+  
+  plot, index, skdout.rmsa1, index, yrange = [-1, nsc], xsty = 0, /nodata, $
+        xrange = [0, max([skdout.rmsa1, skdout.rmsa2, skdout.rmsa3])*2], ysty = 0, $
+        title = 'NIKA2 Skydip dispersion', $
+        thick = 2, xtitle = 'Median rms [Hz]', ytitle = 'Scan number', $
+        pos=pp1[0, *], noerase=0
+  for i =0, nsc-1 do if (i mod 10 eq 0) then oplot, [0, max([skdout.rmsa1, skdout.rmsa2, skdout.rmsa3])], [i,i]
+
+
+  dtall = fltarr(3, nsc)
+  dtarr = skdout.dt
+  for narr = 1, 3 do begin      ; loop on arrays
+     kidall = where( kidpar.type eq 1 and $
+                     kidpar.array eq narr, nallkid)       
+     
+     for isc = 0, nsc-1 do begin ; Median function does not exclude Nans
+        u = where( finite( dtarr[ kidall, isc]) eq 1, nu)
+        if nu gt 3 then dtall[narr-1, isc]= $
+           median(/double, dtarr[ kidall[ u], isc])
+     endfor
+  endfor
+  
+  
+
+
+
+
+
+  
+end

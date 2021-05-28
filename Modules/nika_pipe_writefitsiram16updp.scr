@@ -1,0 +1,190 @@
+; Change format to suit Albrecht needs
+; back to a structure
+; Try to write a table in a fits column
+; v8 : include new polyn fits
+; v9 add few keywords and polyfit goes to 2 instead of 3 when problems
+; Additional info in header from calibration
+; v10 is first test for 2012 campaign
+; v11 remove X, Y, add FTONE, add tuning params in another extension
+; v12 Identical to v11 but adapted to run5
+; v13 start same as v12 but moved to NIKA pipeline
+;     Intend to evolve to write only the useful channels and replcae the last column:
+;     fres (the absolute resonance frequency)
+; v14 for preRun 7= runCryo
+; v15 ftotal --> fres, for run7
+; v16 Run7 v2 Timing for each array
+; v16updp means that only the params extension is changed in an existing fits
+; file
+; updp contains the full directory name where fits files are.
+; updp/New should exist and new files will be copied there
+
+now= bin_date()
+datenow= string( now[0], '-', zeropadd(now[1],2), '-', zeropadd(now[2],2),'T', $
+                 now[3],':', now[4],':', now[5],' CET', $
+                 format='(I4, A1, A2, A1, A2, A1, I2, A1, I2, A1, I2, A4)')
+
+hdra0 = [ "COMMENT   FITS (Flexible Image Transport System) format is defined in 'Astronomy", $
+          "COMMENT   and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H", $
+          'END                                                                             ']
+fxaddpar, hdra0, 'TELESCOP', 'IRAM 30m', ' Telescope Name'
+fxaddpar, hdra0, 'ORIGIN', 'IRAM', ' Organization or institution'
+fxaddpar, hdra0, 'INSTRUME', 'NIKA2014_IRAMJan_1mm', ' Instrument Name'
+fxaddpar, hdra0, 'N2I', 'v16', $
+      'NIKA to IRAM idl conversion program version '
+fxaddpar, hdra0, 'DATE', datenow, ' file creation (YYYY-MM-DDThh:mm:ss CET)'
+
+; Run7 ; should be up to date (if read_nika_brute just before).
+facq = !nika.f_sampling 
+; Old 
+;;;;facq= 490D6/80D0/2L^18  ; 23.365Hz ; Accurate Acquisition frequency in Hz
+
+hdra = ['END                                                                             ']       
+fxaddpar, hdra, 'EXTNAME', 'RawData', $
+      'Sample, Sample, RawR, I, Q, dI, dQ, polyF, Fres'
+fxaddpar, hdra, 'INTTIME', 1./facq, $
+      ' Integration time in seconds'
+
+; Loop on variable
+idxA = where( kidpar.array eq 1, ndetA)
+; old
+;;;;idxA = where( kidpar.acqbox eq 0, ndetA)
+; Add the number of detectors in the primary header
+fxaddpar, hdra0, 'NDET', ndetA, ' Number of detectors in extensions (kid and offresonance but no null)'
+
+dstr = {sample:0L, mjd:0D, R: dblarr( ndetA), I: dblarr( ndetA), $
+        Q: dblarr( ndetA), DI: dblarr( ndetA), DQ: dblarr( ndetA), $
+        PF: dblarr( ndetA),  Fres: dblarr( ndetA)}
+
+nda= n_elements( strdat.i[0])
+dout = replicate( dstr, nda) 
+; First extension HK data
+nika_pipe_clean_timing, strdat, verb = verb  ; default sync on A time
+; Use corrected mjd
+dout.sample = strdat.sample
+dout.mjd= strdat.mjd
+dout.i       = strdat.i[ idxA]
+dout.q       = strdat.q[ idxA]
+dout.di      = strdat.di[ idxA]
+dout.dq      = strdat.dq[ idxA]
+dout.r       = strdat.rf_didq[ idxA]
+dout.pf      = strdat.df_tone[ idxA]
+dout.fres    = strdat.f_tone[ idxA]
+;stop, 'write fits'
+delvarx, nonexist
+;; if not keyword_set( noexe) then $
+;;    mwrfits, nonexist, outfileA, hdra0, /create, /silent ; /create to make a fresh file
+;; ; Additional info in header from calibration
+;; if not keyword_set( noexe) then $
+;;    mwrfits, dout, outfileA, hdra, /silent
+
+; Loop reading and writing the imbfits file
+iext = 0
+repeat begin
+   readin = mrdfits(outfileA, iext, hdr, status=status, /silent)
+   cr = iext eq 0
+   extna = sxpar( hdr, 'EXTNAME')
+   if strtrim( strupcase(extna), 2) eq strupcase('Params') then begin
+; Write directly in another extension the general configuration
+      hconfigA = ['END                                                                             '] 
+      fxaddpar, hconfigA, 'EXTNAME', 'Params', $
+                ' NIKA 1mm Global configuration parameters'
+      ntag = n_tags( param_c)
+      tagname = tag_names( param_c)
+; Tagname is truncated to 8 characters, give the full tagname in comment field
+      for itag = 0,  ntag-1 do $
+         fxaddpar,  hconfigA, 'NKconf' + string(zeropadd(itag, 2), $
+                                                format = '(A2)'),  $
+                    param_c.(itag), tagname[itag], before = 'EXTNAME'
+      if not keyword_set( noexe) then $
+         mwrfits, kidpar[idxA], outfileAupdp, hconfigA, /silent
+   endif else begin
+      if not keyword_set( noexe) then $
+         mwrfits, create = cr, readin, outfileAupdp, hdr, /silent
+   endelse
+
+   iext = iext + 1
+endrep until status lt 0
+
+
+
+
+;------------------------------------------------------------------
+; SAME FOR B
+;------------------------------------------------------------------
+
+hdrb0 = [ "COMMENT   FITS (Flexible Image Transport System) format is defined in 'Astronomy", $
+          "COMMENT   and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H", $
+          'END                                                                             ']
+fxaddpar, hdrb0, 'TELESCOP', 'IRAM 30m', ' Telescope Name'
+fxaddpar, hdrb0, 'ORIGIN', 'IRAM', ' Organization or institution'
+fxaddpar, hdrb0, 'INSTRUME', 'NIKA2014_IRAMJan_2mm', ' Instrument Name'
+fxaddpar, hdrb0, 'N2I', 'v16', $
+      'NIKA to IRAM idl conversion program version '
+fxaddpar, hdrb0, 'DATE', datenow, ' file creation (YYYY-MM-DDThh:mm:ss CET)'
+
+; First extension HK data
+hdrb = ['END                                                                             ']       
+fxaddpar, hdrb, 'EXTNAME', 'RawData', $
+      'Sample, MJD, RawR, I, Q, dI, dQ, polyF, Fres'
+fxaddpar, hdrb, 'INTTIME', 1./facq, $
+      ' Integration time in seconds'
+
+idxB = where( kidpar.array eq 2, ndetB)
+; old
+;;;idxB = where( kidpar.acqbox eq 1,  ndetB)
+fxaddpar, hdrb0, 'NDET', ndetB, ' Number of detectors in extensions (kid and offresonance but no null)'
+dstr = {sample:0L, mjd:0D, R: dblarr( ndetB), I: dblarr( ndetB), $
+        Q: dblarr( ndetB), DI: dblarr( ndetB), DQ: dblarr( ndetB), $
+        PF: dblarr( ndetB),  Fres: dblarr( ndetB)}
+
+dout = replicate( dstr, nda) 
+; First extension HK data
+nika_pipe_clean_timing, strdat, verb = verb, /use_B ; sync on B time
+; Use corrected mjd
+dout.sample = strdat.sample
+dout.mjd= strdat.mjd
+dout.i       = strdat.i[ idxB]
+dout.q       = strdat.q[ idxB]
+dout.di      = strdat.di[ idxB]
+dout.dq      = strdat.dq[ idxB]
+dout.r       = strdat.rf_didq[ idxB]
+dout.pf      = strdat.df_tone[ idxB]
+dout.fres  = strdat.f_tone[ idxB]
+
+delvarx, nonexist
+;; if not keyword_set( noexe) then $
+;;    mwrfits, nonexist, outfileB, hdrb0, /create, /silent ; /create to make a fresh file
+;; ; Additional info in header from calibration
+;; if not keyword_set( noexe) then $
+;;    mwrfits, dout, outfileB, hdrb,  /silent
+
+; Loop reading and writing the imbfits file
+iext = 0
+repeat begin
+   readin = mrdfits(outfileB, iext, hdr, status=status, /silent)
+   cr = iext eq 0
+   extna = sxpar( hdr, 'EXTNAME')
+   if strtrim( strupcase(extna), 2) eq strupcase('Params') then begin
+; Write directly in another extension the general configuration
+      hconfigB = ['END                                                                             '] 
+      fxaddpar, hconfigB, 'EXTNAME', 'Params', $
+                ' NIKA 2mm Global configuration parameters'
+      ntag = n_tags( param_c)
+      tagname = tag_names( param_c)
+; Tagname is truncated to 8 characters, give the full tagname in comment field
+      for itag = 0,  ntag-1 do $
+         fxaddpar,  hconfigB, 'NKconf' + string(zeropadd(itag, 2), $
+                                                format = '(A2)'),  $
+                    param_c.(itag), tagname[itag], before = 'EXTNAME'
+      
+      if not keyword_set( noexe) then $
+         mwrfits, kidpar[idxB], outfileBupdp, hconfigB, /silent
+   endif else begin
+      if not keyword_set( noexe) then $
+         if status ge 0 then $
+            mwrfits, create = cr, readin, outfileBupdp, hdr, /silent
+   endelse
+
+   iext = iext + 1
+endrep until status lt 0
+

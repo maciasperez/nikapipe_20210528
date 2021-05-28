@@ -1,0 +1,101 @@
+;;This script gives an example how you can reduce all the NIKA data at once.
+;;
+;; 1 - First, select the scan number list with its corresponding 
+;;     day list. 
+;; 2 - Then launch the procedure nika_pipe_launch_all_scan.pro
+;;     as done in the example below. You can specify the directory in which 
+;;all the results will be saved, default is !nika.plot_dir+'/All_scans'.
+;;
+;; 3 - Take a look in this directory. You shoul find a folder corresponding 
+;;     to all source in your list, each of them containing:
+;;     3.1 - Data quality check plots (atmospheric common mode, detector 
+;;           correlation flag and scanning speed flag)
+;;     3.2 - Flux, SNR, time per pixel and standard deviation maps
+;;     3.3 - Point source flux results fitted at the center of the map
+;;     3.4 - FITS maps and TOI
+;;     3.5 - A log file
+;;     3.6 - NIKA calibration outputs (badpasses, focal plane, unit 
+;;           conversion)
+;;
+
+; M33 run6 , 
+
+
+day= '20140120'
+scan_num_list = [243,244,245,284,285]
+
+
+day=  '20140121'
+scan_num_list = [ 161, 162]
+
+
+
+day = '20140122'
+scan_num_list = [16,17,18,19,25,26,27,28,29,31,32,34,37,38,$
+	        39,40,41,42,46,48,49,51,52,54,$
+		76,78,79,80,81,82,86,87,88,89,91,95,96,97,98,99,100,101]
+
+
+day = '20140123'
+scan_num_list = [113,115,116,117,118,119,123,124,125,126,127,128,129,130,131,$
+132,133,134,135,140,141,158,166,167,168,169,170,174]
+
+
+day = '20140124'
+scan_num_list = [231,246,247,252,253,254,255,256,257,258,259,260,261,262]
+;scan_num_list =  [256,257,258]
+
+;day= '20140125'
+;scan_num_list = [132,181,182]
+
+
+;day= '20140126'
+;scan_num_list = [262,309]
+
+
+day= '20140127'
+scan_num_list = [290,291,292,293]
+
+; NEED TO RUN THIS
+
+day_list = [day+strarr(n_elements(scan_num_list))]
+mydir = "/archeops/macias/NIKA/Data/Figures/Run7/"+day+"/"
+;mydir = "/Users/macias/NIKA/Data/Plots/Run7/"+day+"/"
+
+version = 'v0' 
+;spawn, "rm -rf "+ mydir
+
+
+;;------- My analysis parameters
+reso = 2.0                       ;Resolution of the map
+decor_mode = 'COMMON_MODE_BLOCK' ;The decorrelation method (see nika_pipe_decor.pro)
+d_min = 20.0                     ;Distance min considered on source
+nbloc_min = 15                   ;Minimum number of KIDs for decorrelation
+nsig_bloc = 3                    ;Number of sigma from the mean of the best detectors below which use other KIDs
+
+nika_pipe_launch_all_scan, scan_num_list, day_list, $
+                           dir_plot=mydir, $
+                           version=version,$
+                           size_map_x=size_map_x,$
+                           size_map_y=size_map_y,$
+                           reso=reso,$
+                           decor=decor_mode,$
+                           nsig_bloc=nsig_bloc,$
+                           nbloc_min=nbloc_min,$
+                           d_min=d_min,$
+                           apply_filter=apply_filter,$
+                           low_cut_filter=low_cut_filter,$
+                           cos_sin=cos_sin,$
+                           /rm_toi,$
+                           rm_bp=rm_bp,$
+                           rm_fp=rm_fp,$
+                           rm_uc=rm_uc,$
+                           sens_per_kid=sens_per_kid
+
+
+
+
+
+
+
+

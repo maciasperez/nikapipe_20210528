@@ -1,0 +1,33 @@
+; Single entry point to reduce the 1st open pool Nika Feb 2014 observations
+; V2 is with the new nk pipeline for some projects
+; Now starting on sami/observer
+dothis = 13  ; 151-13
+; 4.0 is with COMMON_MODE_BAND_MASK
+; 4.1 is with common_mode_kids_out
+vall = '4.1'  ; no v
+k_faint = 1 ; faint source
+k_silent = 0  ; 1= no verbose
+k_doall = 1  ; reprocess all files , 0= process only what's necessary
+iost = 0
+png = 1 ; 1 do png rather that ps
+.r AllScanLissPipeV2.scr
+
+; make figures in ps
+dothis = 13
+vall = '4.1'  ; no v
+k_faint = 1 ; faint source
+k_silent = 1
+k_doall = 0  ; reprocess all files , 0= process only what's necessary
+iost = 0
+png = 0 ;  1 do png rather that ps
+.r AllScanLissPipeV2.scr
+
+; make figures in png (better fonts after ps)
+dothis = 13
+vall = '4.1'  ; no v
+k_faint = 1 ; faint source
+k_silent = 1
+k_doall = 0  ; reprocess all files , 0= process only what's necessary
+iost = 0
+png = 1 ; 1 do png rather that ps
+.r AllScanLissPipeV2.scr

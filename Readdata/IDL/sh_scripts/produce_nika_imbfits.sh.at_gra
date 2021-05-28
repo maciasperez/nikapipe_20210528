@@ -1,0 +1,16 @@
+#!/bin/sh
+#$1 date 20121115 for example
+#$2 beg_scan
+#$3 end_scan
+
+#useNCS
+
+cd ~/observationData/imbfits
+
+for (( c=$2; c<=$3; c++ ))
+do
+make_BOLOMETER_NIKA1mm.py $1s$c remote
+make_BOLOMETER_NIKA2mm.py $1s$c remote
+makeIMBF-antenna.py $1s$c
+done
+

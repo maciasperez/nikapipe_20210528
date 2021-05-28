@@ -1,0 +1,451 @@
+
+
+!SOURCE Body Ceres 2456551.202069534158 80.32764144660911 72.29215117844517 10.59398142371781 2.557090856996202 .07579725984872261
+
+
+PAKO preparation for 2013 run6
+-------------------------
+; v9 is at the start of 2012 (copy of v8)
+; v10 is rearranged v9 for the preparation of November 2012, run5
+; v11 add the new computer config (see the end)
+; v12 updated at MCBT, Nov. 6th, 2012
+; v13 update pako commands, new setup for NIKA, Nov. 14, 2012, SL
+; v14 correct some typo in the commands, remove decrepated sommands, Nov. 19, 2012, SL
+; v15 Start Run6. Preparation in May 2013
+; v16 edited with H Ungerecht's input (see the end for a verbatim)
+; v17 (2014-01-19) N. Ponthieu, N. Billot, A. Monfardini, A. Benoit, A. Catalano, getting ready for NIKA run 7
+
+--------- XEphem usage -------------------------------------------------
+!! preliminary: if you want to use xephem with the position of the telescope displayed in real time
+! run the following sequence from the command prompt 
+slogin mrt-lx3
+ps xa |grep azElToXephem.py & ! check if the script is already running, if not do the following
+useNCS
+azElToXephem.py &
+! once the script is running type:
+xephem &
+
+------- Managing Imbfits file -----------------------------------------------
+; Telescope fits are in mrt-lx1
+/ncsServer/mrt/ncs/data/imbfits/bol
+on mrt-lx1 (not gra-lx1)
+
+or best
+/ncsServer/mrt/ncs/data/20120604/scans
+
+/ncsServer/mrt/ncs/data/20120604/datastreams/bbc
+
+processed imbfits files are
+/ncs/data/imbfits/bol/
+; Or in ?
+/ncsServer/mrt/ncs/data/datastreams/nika/2012
+; Or in ?
+/ncsServer/mrt/ncs/data/imbfits/bol
+
+; There is a script to copy imbfits files from Iram to sami locally e.g.
+; not necessary anymore ./Backup_telescope.bash 20121024
+
+; To process NIKA raw data files onto fits files and imbfits files
+; log in sami on a dedicated window
+idl
+nika_filing
+
+; Old convert_fits_files2
+convert_raw2imbfits
+
+
+---------- Pako usage ----------------------------------------------
+!!!! 
+Interface to NCS
+Summary of PAKO user's manual
+
+
+!   starts a comment line
+-   command is continued
+@ filename   to execute the script filename
+
+; To start pako
+; Devant l'ordinateur de commande : login as t21
+ssh t21@mrt-lx1....
+
+goPako
+pakoDisplay
+pakoNIKA
+
+
+
+!!! The observer should be able to run @ini to have all the following commands in the script file
+!!!  Attention, ini is the new init file for NIKA, do not use the old nini which will create problems !!!
+
+
+!!! Check that the NCS knows the current project is t21
+!!! otherwise the telescope will not obey you pako commands !
+!!! --> look at the OperatorControl screen and/or ask the operator
+
+set project t21
+set pi "Alain"
+set observer "Nika observer"  ! your name here, Nika needs you
+
+! If not sending commands (outside normal run) do:
+SET DOSUBMIT NO
+
+SET LEVEL 0 0   ! very verbose
+SET LEVEL 1 1   ! chatty
+SET LEVEL 3 3   ! less
+SET LEVEL 5 5   ! none
+
+! Choose one of the 2 azimuth topology possibilities to decide on which end of the 
+! azimuth overlap you want to set the origin of the 360 degrees azimuth circle
+! May be usefull to avoid a complete turn (>8min) to go from one source ot another
+SET TOPOLOGY LOW ! selects to use the azimuth range 60 to 420 degrees 
+SET TOPOLOGY HIGH ! selects to use the azimuth range 100 to 460 degrees 
+
+SET ANGLEUNIT arcsec   ! make sure angle units are arcsec.
+
+! Remember to reset offsets!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+OFFSETS /Clear
+
+! total power (no secondary wobbler)
+SWTOTAL
+
+! New: NIKA is now incorporated in NCS no need to choose a dumy instrument for pointing purpose
+RECEIVER /CLEAR 
+RECEIVER Bolometer NIKA ! set pointing mobel of NIKA, normaly not necessary; should be set when you typed pakoNIKA
+!! No need to set a backend anymore
+
+! prepare a catalog
+! NIKA.sou (see wiki web) to put in the directory : 
+!   t21/pako
+track 200 200 /tsubscan 10
+
+! Choose a catalog with a .sou extension
+CATALOG SOURCE NIKA2013R6
+! or
+CATALOG SOURCE iram-J2000
+! select a source
+! No case matching, but name must be full
+SOURCE W3OH
+
+! or a planet
+SOURCE Mars
+
+! to check the catalog
+HELP SOURCE
+
+! Catalog of Pointing source from IRAM
+CATALOG SOURCE iram-J2000
+
+! Once you have entered an observing mode (See below)
+! if you want that the telescope executes your commands do no forget
+SET DOSUBMIT YES
+
+! start an observation (MAKE SURE you want that)
+START 
+! (if you still have DOSUBMIT NO, nothing happens, but the commands 
+! are in the queue and they will be executed when SET DOSUBMIT YES)
+
+
+!!!!!!!!! Observing modes !!!!!!!
+
+! procedures for tunning:
+@ diy-test-00.pako ! 11 seconds track with 440 330 RA DEC offset to tune NIKA resonances
+!   Note the text parameter "Tune" is sent through NCS (then Elvin) to be used by data acquisition
+! 
+@ diy-test-03.pako ! big 600x600 arcsec OTF map with 66 steps of 20" each, and 10 seconds pause
+!  at each end of subscan for frequency tunning, the text parameter sent by NCS is "big OTF with tunes"
+!
+@ diy-test-12.pako ! sky dip from 1.1 to 3.5 airmass by step of 0.4, with 11 sec for tunning
+!  followed by 22 sec for measure at each step, the text parameter sent by NCS is "tuned Tip"
+
+
+
+! procedure to focus
+! to set focus correction in mm wrt the current focus
+SET FOCUS -2.4
+
+! Change the Nasmyth offset to chose a pixel a being the reference for the pointing
+! (can be determined after a pointing session = pointing ~ 30 pointing sources)
+! Normally the starting values should be 0 0
+OFFSET 0 0 /SYSTEM Nasmyth
+
+
+
+! everything in J2000
+! x=(l-lsource)*cos(b)
+! y=b-bsource
+! to define the source
+SOURCE
+! if needs to offset from source use
+OFFSET a b /SYSTEM projection
+! then it is in x and y as above
+
+! or
+
+OFFSET a b /SYSTEM trueHorizon
+! then Delta az= (az-azsource)*cos(elev)
+! and  Delta el= elev-elevsource
+
+! or 
+OFFSET a b /SYSTEM Nasmyth
+
+! Remember to reset offsets!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+OFFSETS /Clear
+
+!options
+/t... refers to time
+/n... refers to number
+/f... refers to frequency
+/temp... refers to temperature
+
+! See example of startup p21 of the PaKo manual, but normally all the startup sequence is 
+! included in the ini.pako script
+
+
+! go on a source and track it for a minute (an offset can be specified directly in the command) 
+TRACK 200 200 
+
+
+! Pointing
+SWBEAM
+POINTING /default
+START
+
+! Set the corrections
+! Corrections in arcsec found during the "cross" reduction.
+! These corrections are to be added as is, there's no "offset" to remember whatsoever
+! Pointing corrections should be done in az, el, not nasmyth, R. Zylka private communication
+SET POINTING 3.4 -1.2
+
+! pointing cross of given length (in trueHorizon system)
+POINTING 120
+! or use @Cross which contains additional parameters
+
+
+! Focus ( total length in mm), 0, +1, +1, -1, -1, 0 mm in this example
+! 0, +1, -1 etc... are referenced to the current position
+FOCUS 2  /nsubscans 6 /tsubscans 12
+START
+
+! enter the correction
+! This is the absolute value
+SET FOCUS -2.1
+
+
+
+! On the fly mode (cover all array pixels) for pointing and alignment. Expensive.
+OTFMAP -180 -180 180 -180  - ! offsets at start and end of first otf subscan
+  /notf 61 ! number of subscans
+  /step 0 6  ! steps between subscans in arcsecond (az el)
+  /system truehorizon ! projection AzEl is used to define the map
+  /totf 36 ! time of a subscan
+  /zigzag  ! go back and forth
+  /reference no ! not necessary except if there's a conflict with /system
+
+!! Attention to the tracking speed (= subscan length / totf) if you choose >10"/s keep an eye
+!! on the tracking errors trackAz and trackEl in real time on the telescope control screen
+!! this information is also stored in the FITs files (you can go much faster, 
+!! check tabble of speed limit depending on elevation posted on the wiki)
+
+! Small map
+OTFMAP -48 -48 48 -48  - ! offsets at start and end of first otf subscan
+  /notf 17 ! number of subscans
+  /step 0 6  ! steps between subscans in arcsecond
+  /system truehorizon ! projection AzEl is used to define the map
+  /totf 10 ! time of a subscan
+  /zigzag  ! go back and forth
+
+! Look at the .pako files in the .pako directory (or on the Wiki): many scripts have been prepared
+! all of them include the commands listed above but with more relevant numbers
+
+
+
+! 4 switching modes (3 useful for bolometers, but not necessary anymore in normal operation of NIKA)
+! total power
+SWTOTAL
+! Beam switching
+SWBEAM
+! wobbler switching negAmplitude posAmplitude  0.6 seconds per phase!
+SWWOBBLER -30 +30 /TPHASE 0.6
+
+
+! skydip
+! stop wobbler
+SWTOTAL /tphase 0.6
+! tip at azimuth 180, scan airmass from 1.1 to 4.1 by steps of 0.6
+TIP  180 /airmass 1.1 4.1 0.6 /tsubscan 12.0
+! better now: use @ diy-test-12.pako which includes pauses for tuning
+
+
+! position switching (not necessary anymore in normal operation of NIKA)
+ONOFF   !
+! example (give ON offsets and OFF offsets, 2 positions each, 2 systems)
+ONOFF 30 40 /reference -600 -700 projection /SYSTEM projection
+! other options (30 seconds per subscan):
+/nsubscans 12 /symmetric /tsubscan 30
+!
+! projection is RADEC system here
+! can use /SYSTEM trueHorizon too
+!
+! if wobbler on use the following special mode
+! in that case the off position is automatically on the off wobbler position
+ONOFF /swwobbler /nsubscans 12 /symmetric /tsubscan 30
+
+
+
+! Useful in a script
+PAUSE "Sequence Something OK to start ? [c/q]"  ! a chance to check
+
+! and also
+SAY " blabla "
+
+! save last command
+SAVE name
+! retrieve a command
+@ command_name
+
+
+! To erase graphics in greg
+Clear
+
+!------------  Display the scanning pattern with GREG
+In the preamble of pako scripts, we should define in a few lines
+the parameters of the display window of PaKo. This is particulary useful to visualize
+the scanning pattern of the telescope and may prevent wrong scanning strategies.
+This can also be usued interactively in the PaKo command line.
+The example below is taken from the script pointing_lissajous.pako
+!-----  Setup the display parameters to check the map geometry ---------
+LIMITS 70 -70 -85 60	                ! Set the plot boundaries (Xleft Xright Ydown Yup)
+clear  plot                             ! clear previous plot(s)
+box                                     ! draw the bounding box
+label "x" /X                            ! Write the "string" label on the x axis
+label "y" /Y                            ! same on the y axis
+ellipse 9.3 /user  20 -60 /fill 2	! Draw an ellipse at a specified location 
+                                        ! ellipse 'diameter' /coordinateSystem Xpos Ypos /fillTheEllipse colorCode
+draw text  20 -75 "Beam@2mm" /user      ! Add text annotations in /user coordinates
+
+Then the scanning pattern is plotted in this window when the otf, or lissajous, or pointing, etc. 
+command is executed in PaKo (but before the scan "start" so that we can check the scan pattern beforehand).
+
+One can zoon interactively on this display window by typing "zoom" at the PaKo prompt.
+Then mouse over the window, increase (decrease) the zoom factor with the 
+keyboard stroke "z" (-). Pressing the "space" bar will create the zoon window. You exit with "e".
+
+----------------------------------------------------------------
+; Computer configuration
+----------------------------------------------------------------
+The new sami is installed (24/10/21012) along with a mac, a PC windows, a
+router/switch and an ethernet-IP triggered power plug.
+The CVS file Camera/documentation/Installation_IRAM.txt contains most of the 
+information
+
+
+; Internal NIKA network addresses
+192.168.1.30 Switch
+192.168.1.31 NIKA_Win31
+192.168.1.32 NIKA_Lin32 new sami (00 50 C2 B2 11 ED)
+192.168.1.33 NIKA_Mac33
+
+; Iram network
+150.214.224.22 = mrt-nika1.iram.es  :   Router (ssh connection goes to sami)
+150.214.224.223 gateway
+150.214.224.100 DNS
+gra-lx1.iram.es  : ntp server
+
+; Old sami for ref
+192.168.1.23 (Local)
+150.214.224.22 (via routeur address with ssh)
+
+
+; From iram computers to archeops@sami do
+ssh_sami
+
+
+
+; Hans Ungerecht's email about 8Hz and Lissajous
+Notes on Lissajous with NIKA
+=============================
+
+
+As requested by CK and NB, in project account T21 on mrt-lx1 I have defined
+that:
+
+t21@mrt-lx1:~/PaKo$ pakoNIKA
+PAKO> show
+I-SHOW        ,  paKo Revision v 1.1.14.1 2013-06-01
+
+calls a new version of paKo that allows to use observing mode Lissajous with
+NIKA.  (As usual, you enter goPako and pakoDisplay before pakoNIKA).
+
+
+To get the same version of pako in any other account, use:
+
+/local/users/pako/Development/gildas-src/packages/pako/main/pakoNIKA.exe
+
+Using this version of pako with NIKA will switch the slowRate in antenna mount
+drive to 8Hz, which is necessary for Lissajous.
+
+If you have any questions about the use of the pako commands, please contact
+me (HU).
+
+Good luck,
+Hans
+
+
+IMPORTANT: After using this version of pako and/or slowRate 8 in the antenna
+mount drive control system, and before other observations outside the NIKA
+pool or before observing with the previous version of pakoNIKA[old]: THE
+ANTENNA MOUNT DRIVE COMPUTER vac1 MUST BE REBOOTED BY THE OPERATOR.
+
+
+
+Known issues
+============
+
+With antenna mount drive slowRate 8 all TRACK subscans are executed about 2
+sec shorter than commanded. This can be compensated by specifying a time per
+subscan 2 sec longer.  This applies, e.g., to: observing modes TRACK, ONOFF,
+and TIP, as well as track and tune SUBSCANS.
+
+Occasionally, the trackFlags can be < 0, indicating a problem in the execution
+of the slow loop. To be conservative, the corresponding data should be flagged
+out.
+
+The tracking errors and flags can be supervised with AS's tracking monitor:
+https://mrt-lx1.iram.es/mrt/ncs/monitor/30mTracking/30mTrackingLast-1.pdf
+
+Not all observing modes are fully tested and debugged with slowRate 8.
+
+
+
+Important characteristic of fast Lissajous:
+===========================================
+
+For Lissajous near the maximum speeds and accelerations (high amplitude and/or
+frequency), the tracking errors will be larger than we normally accept at the
+30m, i.e., several arc sec.  This will in particular be the case at the times
+of maximum acceleration.
+
+AS is the contact for how this information is delivered to the other
+subsystems and can be taken into account by the data processing, as well as
+for the tracking monitor mentioned above.
+
+
+
+
+Fallback / previous version of pako for NIKA
+============================================
+
+To get the version of pako used in the previous NIKA run (2012-11), use:
+
+t21@mrt-lx1:~/PaKo$ pakoNIKA2012
+
+PAKO> show
+I-SHOW        ,  paKo Revision v 1.1.14 2012-11-14
+
+To get the same version of pako in any other account:
+/local/users/pako/Development/gildas-src/packages/pako/main/pakoNIKA2012.exe
+
+
+

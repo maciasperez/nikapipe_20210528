@@ -1,0 +1,103 @@
+; Use to have a regular mjd
+;  (being used in converting files to imbfits)
+; mjd and samples are sometimes wrong. Correct them
+; Use only mjd and samples in strdat
+; facqapprox=250D6/40D0/2L^18  ; = 23.841858 correct according to Martino
+facqapprox= facqmeas  ; = 23.841858 correct according to Martino
+
+; Sometimes sample number is 0. Reestablish the proper value.
+indzero = where( strdat.sample LT 1, nindzero)
+IF nindzero NE 0 THEN BEGIN
+  IF keyword_set( verb) THEN print, nindzero, ' zeroes in sample number'
+  indnotzero = where( strdat.sample GE 1)
+  strdat[ indzero].sample = $
+     interpol( strdat[ indnotzero].sample, indnotzero, indzero)
+  sa_zero = strdat[ indzero]
+ENDIF
+
+
+ind_notcontig = where( (strdat.sample-shift( strdat.sample, 1)) NE 1, $
+                       nind_notcontig)
+nind_notcontig = nind_notcontig -1  ; beginning is wrong
+IF nind_notcontig NE 0 THEN BEGIN 
+   ind_notcontig = ind_notcontig[1: * ]
+   IF keyword_set( verb) THEN print, nind_notcontig, ' jumps in samples'
+   sa_notcontig = strdat[ ind_notcontig].sample
+ ENDIF ELSE BEGIN
+   ind_notcontig = -1
+ ENDELSE
+; Don't do anything for these jumps, just hope they do not mess up the whole timeline
+
+mjd= strdat.mjd
+; Time is not well sampled so modify the time and convert it
+; Time is locally inaccurate, do a linear regression
+
+badmjd = where( (strdat.mjd- 55000) GT 9000.D0 OR $
+                  (strdat.mjd- 55000) LT 600, nbadmjd)  
+;; badmjd = where( (strdat.mjd- 56246) GT 9000.D0 OR $
+;;                 (strdat.mjd- 56246) LT 845, nbadmjd)  ; fine tuned to prevent bad mjd problems
+IF nbadmjd NE 0 THEN mjd[ badmjd] = !undef
+
+nmjd = n_elements(mjd)
+
+if (nmjd gt nbadmjd+10) then begin  
+; Estimate the zero mjd if an approximate frequency is used
+   mjd0estim = mjd- (strdat.sample-strdat[0].sample) * $
+               (1/facqapprox/3600.D0/24.)
+   mjd0estim[ badmjd] = !undef
+   bestmjd0 = la_median( mjd0estim)
+   residue = 86400D0 * (mjd0estim-bestmjd0) ; seconds
+   residue[ badmjd] = !undef
+; histo_make, residue, /plot,/gauss,/print, minval = (-.1), maxval = .1
+; This approx freq is accurate to 2e-4 Hz, so timing cannot drift by 1s.
+   badmjd = where( abs( residue) GT 1., nbadmjd)
+   IF nbadmjd NE 0 THEN mjd[ badmjd] = !undef
+   goodmjd = where( mjd ne !undef)
+; avoid glitches in mjd
+   delvarx, slope
+   plot_correl, double(strdat.sample), mjd, slope, a0, nostop = 1 , /noplot
+   if defined( slope) then begin 
+      mjd = strdat.sample * slope + a0
+      facq = 1./ (median( deriv( strdat.sample)) * slope * 24. * 3600) ; acquisition frequency
+; Need a more complex test
+; For small duration tests, do nothing
+      ftest = 1
+      IF n_elements( strdat) GT 1000 THEN $
+         ftest = abs( facq- facqapprox) LT 1 * sqrt( 1000./ n_elements( strdat))
+      IF NOT ftest THEN  message, /info, '########   Timing pb for ' + strtrim( strdat[0].mjd, 2)
+      strdat.mjd = mjd
+   endif else begin
+      facq = facqapprox
+      message, /info, 'Case1: Not enough points to correct mjd'
+   endelse
+   
+endif else begin
+   
+   message, /info, 'Case2: Not enough points to correct mjd'
+   
+endelse
+
+; Correct bug in mjd by one day for  20130613 for run6
+; SHOULD not be necessary for run7
+;; mjdmed = median( strdat.mjd) 
+; Cannot use mjd because it is wrong
+; Use the filename
+;; str2 = strsplit(filein,'_',/extract)
+;; date = str2[1]+str2[2]+str2[3]
+;; scan_num = long( str2[5])
+
+;; if date eq '20130612' then begin
+;;    if keyword_set( verb) then print, $
+;;       'Correct MJD by + one day for scans including 20130612' 
+;;    strdat.mjd = strdat.mjd+1D0
+;; endif
+;; if date eq '20130615' and scan_num lt 127 then begin
+;;    if keyword_set( verb) then print, $
+;;       'Correct MJD by + one day for scans including 20130615 before scan 127' 
+;;    strdat.mjd = strdat.mjd+1D0
+;; endif
+;; if date eq '20130616' and scan_num lt 34 then begin ; found in July 2013
+;;    if keyword_set( verb) then print, $
+;;       'Correct MJD by + one day for scans including 20130616 before scan 34' 
+;;    strdat.mjd = strdat.mjd+1D0
+;; endif

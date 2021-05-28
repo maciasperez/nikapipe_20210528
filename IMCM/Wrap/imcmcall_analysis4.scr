@@ -1,0 +1,112 @@
+; Iterative map making technique
+; Analysis part : see Test_imcm
+; HOR VER maps analysis
+set_plot, 'x'
+read_file, filsc, 1, scan_list, /whole
+input_txt_file = filpa
+@read_imcm_input_txt_file
+root_dir = !nika.save_dir+ext+'/'+source+'/'+strtrim(method_num, 2)
+plot_dir = root_dir+'/Plot'
+spawn, 'mkdir -pv '+ plot_dir
+param.version = version
+if keyword_set( itest) then begin
+   imin = round(itest>0)
+   imax = round(itest>0)
+endif else begin
+   imin = 0
+   imax = iter_max
+endelse
+itest = round( itest)
+nscan = n_elements( scan_list)
+if keyword_set( only_plot) then begin
+   imin = iplot_min
+   imax = iplot_max
+endif
+if not keyword_set( k_catmerge) then begin
+   itermerge = iter_max         ; default
+   if param.atmb_defilter ne 0 then begin
+      itermerge = ((param.atmb_defilter - 1) > 0) < iter_max
+      message, /info, '4-HORVER files using iteration before defilter: '+ strtrim( itermerge, 2)
+   endif else $
+         message, /info, '4-HORVER files using last iteration: '+ strtrim( itermerge, 2)
+endif
+
+file4_plot_arr = strarr(imax+1)
+file4_plot_SNR_arr = strarr(imax+1)
+suffix = 'HORVER'
+for iter = imin, imax do begin
+   
+; Read Maps
+   
+   message, /info, 'reading '+param.project_dir+'/iter'+strtrim(iter,2)+'/map_HOR.fits'
+   nk_fits2grid,  param.project_dir+'/iter'+strtrim(iter,2)+'/map_HOR.fits', $
+                  grid, header
+   nk_fits2grid,  param.project_dir+'/iter'+strtrim(iter,2)+'/map_VER.fits', $
+                  grid_jk
+
+; Save the output map to a more readable name and out the iter
+; directories
+  if not keyword_set( only_plot) and iter eq itermerge then begin
+     fileout = param.project_dir+'/map_HOR_'+source+'_'+ strtrim(method_num,2)+version+strtrim(iter,2)+'.fits' 
+     message, /info, 'Copying '+param.project_dir+'/iter'+strtrim(iter,2)+'/map_HOR.fits to '+ fileout
+     cmd = '/bin/cp '+ param.project_dir+'/iter'+strtrim(iter,2)+'/map_HOR.fits ' + fileout
+     spawn, cmd, res
+
+     fileout = param.project_dir+'/map_VER_'+source+'_'+ strtrim(method_num,2)+version+strtrim(iter,2)+'.fits' 
+     message, /info, 'Copying '+param.project_dir+'/iter'+strtrim(iter,2)+'/map_VER.fits to '+ fileout
+     cmd = '/bin/cp '+ param.project_dir+'/iter'+strtrim(iter,2)+'/map_VER.fits ' + fileout
+     spawn, cmd, res
+  endif
+
+  ; Also save all iterations locally
+  if not keyword_set( only_plot) then begin
+     fileout = param.project_dir+'/iter'+strtrim(iter,2)+'/map_HOR_'+source+'_'+ $
+               strtrim(method_num,2)+version+strtrim(iter,2)+'.fits' 
+     message, /info, 'Copying '+param.project_dir+'/iter'+strtrim(iter,2)+'/map_HOR.fits to '+ fileout
+     cmd = '/bin/cp '+ param.project_dir+'/iter'+strtrim(iter,2)+'/map_HOR.fits ' + fileout
+     spawn, cmd, res
+
+     fileout = param.project_dir+'/iter'+strtrim(iter,2)+'/map_VER_'+source+'_'+ $
+               strtrim(method_num,2)+version+strtrim(iter,2)+'.fits' 
+     message, /info, 'Copying '+param.project_dir+'/iter'+strtrim(iter,2)+'/map_VER.fits to '+ fileout
+     cmd = '/bin/cp '+ param.project_dir+'/iter'+strtrim(iter,2)+'/map_VER.fits ' + fileout
+     spawn, cmd, res
+  endif
+  
+; Plot and measure flux at the center
+; Can correct flux max
+  if not defined( fmax) then fmax = [5e-3, 2E-3]
+  noboost = 1  ; 0=allow to boost the noise to have a normalized histogram
+  titleup   = 'HOR'                  ; horizontal map
+  titledown = 'VER'                  ; vertical map
+@imcmcall_plot.pro
+  file4_plot_arr[ iter] = file_plot  ; save for later merge
+; SNR
+  snr_range = [-5.,5.]
+@imcmcall_plot2.pro
+  file4_plot_SNR_arr[ iter] = file_plot  ; save for later merge
+  
+   if keyword_set( ps) then begin
+      png = 0
+      post = 1
+   endif  ; in that order (ie before pdf, for pdf to work)
+   if keyword_set( pdf) then begin
+      png = 0
+      post = 2
+   endif
+   if keyword_set( png) then begin
+      post = 0
+      pdf = 0
+   endif
+   
+endfor
+iter--
+all_plot_files = strjoin( [file4_plot_arr[imin:imax], file4_plot_SNR_arr[imin:imax]]+ '.png ')
+plot_filout = plot_dir+'/'+source+'_'+strtrim( method_num, 2) +version+ '_HORVER_QLA'+'.pdf'
+spawn, 'which convert', res
+if keyword_set( strlen( res)) then begin
+   spawn, res+ ' '+ all_plot_files+ ' '+ plot_filout, res1
+   print, res, res1
+   if not keyword_set( strlen( res1)) then spawn, 'rm -f '+ all_plot_files ; clean
+endif
+

@@ -1,0 +1,970 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSPY v5 U (http://www.xmlspy.com) by koenig (mpifr) -->
+<Scan content="process" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:noNamespaceSchemaLocation="MBFits.xsd" mode="offline">
+	<Primary content="table">
+<!--
+Edited Version, DATE added A. Sievers 2003.09.11 MBFITS maybe 1.3
+Mainly working on  DATAPAR A. Sievers 2004.02.18
+Let us say it is MBFITS version 1.31
+Again  working on DATAPAR  A. Sievers 2004-09-07 IMBFITS version 1.0
+IMBFITS Version 1.1 A. Sievers 2004-10-19
+IMBFITS Version 1.2 A. Sievers 2007-10-17
+IMBFITS Version 2.0 A. Sievers 2009-03-09 Started for EMIR
+-->
+	    <A description="Telescope Name" type="20A" dataSource="">TELESCOP</A>
+	    <A description="Organisation or Institution" type="20A" dataSource="">ORIGIN</A>
+	    <A description="Software (including version)" type="20A" dataSource="">CREATOR</A>
+	    <A description="" type="20A" dataSource="">COMMENT</A>
+	</Primary>
+
+	<IMBF-scan content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" needsParentOfType="FitsFile">
+		<HEADER>
+<A description="Telescope Name" type="20A" dataSource="">TELESCOP</A>
+<E description="Telescope Diameter " type="E" unit="m" dataSource="">TELSIZE</E>
+<D description="observatory longitude (EAST)" type="D" unit="deg" dataSource="">SITELONG</D>
+<D description="observatory latitude (NORTH)" type="D" unit="deg" dataSource="">SITELAT</D>
+<E description="observatory elevation" type="E" unit="m" dataSource="">SITEELEV</E>
+<A description="Project ID" type="20A" dataSource="">PROJID</A>
+<A description="Observer initials" type="12A" dataSource="">OBSID</A>
+<A description="Operator initials" type="12A" dataSource="">OPERATOR</A>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<A description="scan start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="Date of FITS file creation" type="23A" dataSource="">DATE</A>
+<D description="Scan date/time (Modified Julian Date)" type="D" unit="day" dataSource="">MJD</D>
+<D description="Local apparent sidereal time (scan start)" type="D" unit="s" dataSource="">LST</D>
+<J description="Number of observations in this scan" type="J" dataSource="">N_OBS</J>
+<D description="Total netto integration time " type="D" unit="s" dataSource="">EXPTIME</D>
+<A description="time system (TT, TAI, UTC ...)" type="04A" dataSource="">TIMESYS</A>
+<D description="UT1-UTC time translation" type="D" unit="s" dataSource="">UT1UTC</D>
+<D description="TAI-UTC time translation" type="D" unit="s" dataSource="">TAIUTC</D>
+<D description="Ephemeris Time - UTC time translation" type="D" unit="s" dataSource="">ETUTC</D>
+<D description="GPS time - TAI translation" type="D" unit="s" dataSource="">GPSTAI</D>
+<D description="Celestial Pole Offset X" type="D" unit="rad" dataSource="">POLEX</D>
+<D description="Celestial Pole Offset Y" type="D" unit="rad" dataSource="">POLEY</D>
+<A description="Source name" type="20A" dataSource="">OBJECT</A>
+<J description="SBAS from OBSINP positioning parameters" type="J" dataSource="">SBAS</J> 
+<J description="SBAS flag from OBSINP positioning parameters" type="J" dataSource="">SBASFLAG</J> 
+<A description="Basis system (longitude) --" type="08A" dataSource="">CTYPE1</A>
+<A description="Basis system (latitude) -- XLAT-SFL" type="08A" dataSource="">CTYPE2</A>
+<A description="additional system definition for ecliptic/equatorial coords" type="08A" dataSource="">RADESYS</A>
+<E description="Equinox" type="E" unit="Julian yrs" dataSource="">EQUINOX</E>
+<D description="Native frame zero in basis system (long.)" type="D" unit="deg" dataSource="">CRVAL1</D>
+<D description="Native frame zero in basis system (lat.)" type="D" unit="deg" dataSource="">CRVAL2</D>
+<D description="Native longitude of celestial pole: range $-180$ to $+180\deg$" type="D" unit="deg" dataSource="">LONPOLE</D>
+<D description="Basis latitude of native pole" type="D" unit="deg" dataSource="">LATPOLE</D>
+<D description="Source longitude in basis frame" type="D" unit="deg" dataSource="">LONGOBJ</D>
+<D description="Source latitude in basis frame" type="D" unit="deg" dataSource="">LATOBJ</D>
+<A description="Calibrator Code" type="04A" dataSource="">CALCODE</A>
+<L description="True if tracking a moving frame" type="L" dataSource="">MOVEFRAM</L>
+<D description="TP, Full Julian date of perihelion" type="D" unit="Julian days" dataSource="">PERIDATE</D>
+<D description="QR, perihelion distance" type="D" unit="AU" dataSource="">PERIDIST</D>
+<D description="OM, Longitude of ascending node (in" type="D" unit="deg" dataSource="">LONGASC</D>
+<D description="W, Angle from asc. node to perihelion" type="D" unit="deg" dataSource="">OMEGA</D>
+<D description="IN, Inclination" type="D" unit="deg" dataSource="">INCLINAT</D>
+<D description="EC, Eccentricity" type="D" dataSource="">ECCENTR</D>
+<D description="EPOCH, Epoch of orbital elements" type="D" unit="Julian days" dataSource="">ORBEPOCH</D>
+<D description="Elements equinox: J2000.0 or B1950.0" type="D" unit="years" dataSource="">ORBEQNOX</D>
+<D description="Geocentric Distance" type="D" unit="AU" dataSource="">DISTANCE</D>
+<!-- <L description="Wobbler used?" type="L" dataSource="">WOBUSED</L> -->
+<A description="Switch mode" type="20A" dataSource="">SWTCHMOD</A>
+<J description="no. of switch phases in a switch cycle" type="J" dataSource="">NOSWITCH</J>
+<E description="Integration time per phase" type="E" unit="s" dataSource="">PHASETIM</E>
+<D description="wobbler throw" type="D" unit="deg" dataSource="">WOBTHROW</D>
+<A description="wobbler throw direction" type="04A" dataSource="">WOBDIR</A>
+<E description="wobbler period" type="E" unit="s" dataSource="">WOBCYCLE</E>
+<A description="wobbler mode (SQUARE/TRIANGULAR})" type="20A" dataSource="">WOBMODE</A>
+<J description="\nfebe\ number of FEBEs" type="J" dataSource="ComClass.NFEBE">NFEBE</J>
+<E description="Pointing Coefficient (P1)" type="E" unit="rad" dataSource="">P1</E>
+<E description="Pointing Coefficient (P2)" type="E" unit="rad" dataSource="">P2</E>
+<E description="Pointing Coefficient (P3)" type="E" unit="rad" dataSource="">P3</E>
+<E description="Pointing Coefficient (P4)" type="E" unit="rad" dataSource="">P4</E>
+<E description="Pointing Coefficient (P5)" type="E" unit="rad" dataSource="">P5</E>
+<E description="Pointing Coefficient (P7)" type="E" unit="rad" dataSource="">P7</E>
+<E description="Pointing Coefficient (P8)" type="E" unit="rad" dataSource="">P8</E>
+<E description="Pointing Coefficient (P9)" type="E" unit="rad" dataSource="">P9</E>
+<E description="Nasmyth Offset (horizontal)" type="E" unit="rad" dataSource="">RXHORI</E>
+<E description="Nasmyth Offset (vertical)" type="E" unit="rad" dataSource="">RXVERT</E>
+<E description="Refract3 THIRD_REFRACT"  type="E" unit="" dataSource="">THIRD_RE</E>
+<E description="subref.rotationZero ZERO_POL" type="E" unit="" dataSource="">ZERO_POL</E>
+<E description="subref.rotationPhi0 PHI_POL" type="E" unit="deg" dataSource="">PHI_POL</E>
+<E description="subref.rotationRadius EPSILON_POL" type="E" unit="deg" dataSource="">EPS_POL</E>
+<E description="encoder.sinCol COL_SINUS"  type="E" unit=""  dataSource="">COL_SIN</E> 
+<E description="encoder.cosCol COL_COSINUS"  type="E" unit=""  dataSource="">COL_COS</E>
+<A description="Time of last pointing model change" type="23A" dataSource="">DATE-POI</A> 
+<E description="Pointing Correction on P1" type="E" unit="rad" dataSource="">P1COR</E>
+<E description="Pointing Correction on P2" type="E" unit="rad" dataSource="">P2COR</E>
+<E description="Pointing Correction on P3" type="E" unit="rad" dataSource="">P3COR</E>
+<E description="Pointing Correction on P4" type="E" unit="rad" dataSource="">P4COR</E>
+<E description="Pointing Correction on P5" type="E" unit="rad" dataSource="">P5COR</E>
+<E description="Pointing Correction on P7" type="E" unit="rad" dataSource="">P7COR</E>
+<E description="Pointing Correction on P8" type="E" unit="rad" dataSource="">P8COR</E>
+<E description="Pointing Correction on P9" type="E" unit="rad" dataSource="">P9COR</E>
+<E description="Nasmyth Offset corr. on horizontal" type="E" unit="rad" dataSource="">RXHORICO</E>
+<E description="Nasmyth Offset corr. on vertical" type="E" unit="rad" dataSource="">RXVERTCO</E>
+<E description="X focus offset correction" type="E" unit="mm" dataSource="">FOCUSX</E>
+<E description="Y focus offset correction" type="E" unit="mm" dataSource="">FOCUSY</E>
+<E description="Z (radial) focus offset correction" type="E" unit="mm" dataSource="">FOCUSZ</E>
+<E description="Poin. Corr. on P4 from Inclinometer" type="E" unit="rad" dataSource="">P4CORINC</E>
+<E description="Poin. Corr. on P5 from Inclinometer" type="E" unit="rad" dataSource="">P5CORINC</E>
+<A description="Time of Inclinometer Values" type="23A" dataSource="">DATE-INC</A>
+
+<E description="Atmospheric pressure (hPa)" type="E" unit="hPa" dataSource="">PRESSURE</E>
+<E description="Outside temperature (C)" type="E" unit="deg C" dataSource="">TAMBIENT</E>
+<!-- <E description="Outside temperature (C)" type="E" unit="deg C" dataSource="">TEMPERAT</E> -->
+<E description="Relative Humidity (%)" type="E" unit="%" dataSource="">HUMIDITY</E>
+<E description="Wind direction (deg)" type="E" unit="deg" dataSource="">WINDDIR</E>
+<E description="Wind velocity (m/s)" type="E" unit="m/s" dataSource="">WINDVEL</E>
+<E description="Wind max. velocity (m/s)" type="E" unit="m/s" dataSource="">WINDVELM</E>
+<A description="Time of weather station par." type="23A" dataSource="">DATE-WEA</A>
+<E description="Refraction Correction, as a function of elevation" type="E" unit="none" dataSource="">REFRACTI</E>
+<E description="Hot Load Temperature in K" type="E" unit="K" dataSource="">THOT</E>
+<A description="Time of Hot Load Temp. meas." type="23A" dataSource="">DATE-HOT</A>
+<!-- <E description="Rotation of Subreflector" type="E" unit="deg" dataSource="">MRTBEAM</E> -->
+<E description="Tau meter zenith opacity" type="E" unit=" " dataSource="">TIPTAUZ</E>
+<E description="Tau meter error" type="E" unit=" " dataSource="">TIPTAUE</E>
+<E description="Tau meter goodness of fit" type="E" unit=" " dataSource="">TIPTAUC</E>
+<A description="Time of Tau from Taumeter " type="23A" dataSource="">DATE-TIP</A>
+<E description="Reference pixel" type="J" unit="" dataSource="">RECON</E>
+<E description="Central pixel" type="J" unit="" dataSource="">RECCNTRL</E>
+
+		</HEADER>
+		<TABLE>
+<A description="Source Offset System" type="15A"  dataSource="">SYSOFF</A>
+<E description="Source X-offset" type="E" unit="rad" dataSource="">XOFFSET</E>
+<E description="Source Y-offset" type="E" unit="rad" dataSource="">YOFFSET</E>
+		</TABLE>
+	</IMBF-scan>
+
+	<FEBECombinations content="process">
+
+		<IMBF-frontend content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" needsParentOfType="IMBF-scan">
+			<HEADER>
+<!-- <A description="Frontend-backend combination identification." type="17A" dataSource="">FEBE</A> -->
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<A description="observing date (Y2K format with time) in TIMESYS system (scan start)" type="23A" dataSource="">DATE-OBS</A>
+<A description="Dewar tracking system" type="05A" dataSource="">DEWRTMOD</A>
+<J description="Dewar angle" type="J" unit="Deg" dataSource="">DEWANG</J>
+<J description="\nbd\ number of basebands for this febe" type="J" dataSource="ComClass.NBD">FEBEBAND</J>
+<J description="\nfd\ total number of feeds" type="J" dataSource="ComClass.NFD">FEBEFEED</J>
+<!-- <J description="\nusfd\ Number of feeds in use." type="J" dataSource="ComClass.NUSFD">NUSEFEED</J> fix me -->
+<J description="\nch\ Number of feeds in use." type="J" dataSource="ComClass.NCH">NUSEFEED</J>
+<J description="No, of data Values Per Phase" type="J" dataSource="">NVPPHASE</J>
+<!--
+<E description="Frequency switching throw" type="E" unit="Hz" dataSource="">FRQTHROW</E>
+<E description="Pointing Coefficient (receiver)," type="E" unit="deg" dataSource="">IARX</E>
+<E description="Pointing Coefficient (receiver), adds to CA (P2)" type="E" unit="deg" dataSource="">CARX</E>
+<E description="Pointing Coefficient (receiver), adds to IE (P7)" type="E" unit="deg" dataSource="">IERX</E>
+<E description="Pointing Coefficient (receiver), adds to ECEC (P8)" type="E" unit="deg" dataSource="">ECECRX</E>
+<E description="Pointing Coefficient (receiver)," type="E" unit="deg" dataSource="">ZFLXRX</E>
+-->
+			</HEADER>
+			<TABLE>
+<J description="Array number" type="J" dataSource="">ARRAY</J>
+<A description="Receiver Name" type="20A" dataSource="">RECNAME</A>
+<D description="Rest frequency of line " type="D(IMBF-frontend(FEBEBAND))" unit="GHz" dataSource="">RESTFREQ</D>
+<!--
+<Jdim description="List of feeds which are in use" type="J(IMBF-frontend(NUSEFEED))" dataSource="">USEFEED</Jdim>
+<Adim description="feed type" type="A(IMBF-frontend(NUSEFEED))" dataSource="">FEEDTYPE</Adim>
+<A description="Line Name" type="20A" dataSource="">LINENAME</A>
+<Edim description="Beam efficiency" type="E(IMBF-frontend(FEBEFEED),IMBF-frontend(FEBEBAND))" dataSource="">BEAMEFF</Edim>
+<Edim description="Forward efficiency" type="E(IMBF-frontend(FEBEFEED),IMBF-frontend(FEBEBAND))" dataSource="">ETAFSS</Edim>
+<Edim description="(spectral line) Gain ratio image/signal sideband" type="E(IMBF-frontend(FEBEFEED),IMBF-frontend(FEBEBAND))" dataSource="">GAINIMAG</Edim>
+<Adim description="Side Band" type="3A" dataSource="">SIDEBAND</Adim>
+<Adim description="Backend Centering" type="6A" dataSource="">WIDENAR</Adim>
+<Edim description="Cold Load Temperature" type="E(IMBF-frontend(FEBEFEED),IMBF-frontend(FEBEBAND))" dataSource="">TCOLD</Edim>
+<Edim description="Aperture efficiency" type="E(IMBF-frontend(FEBEFEED),IMBF-frontend(FEBEBAND))" dataSource="">APEREFF</Edim>
+<Edim description="Gain-elevation correction parameter 1" type="E(IMBF-frontend(FEBEBAND))" unit="deg" dataSource="">GAINELE1</Edim>
+<Edim description="Gain-elevation correction parameter 2" type="E(IMBF-frontend(FEBEBAND))" dataSource="">GAINELE2</Edim>
+<Jdim description="List of feeds which are in use" type="J(IMBF-frontend(NUSEFEED))" dataSource="">USEFEED</Jdim>
+<Adim description="feed type" type="A(IMBF-frontend(NUSEFEED))" dataSource="">FEEDTYPE</Adim>
+<Ddim description="feed x offset" type="D(IMBF-frontend(FEBEFEED))" unit="deg" dataSource="">FEEDOFFX</Ddim>
+<Ddim description="feed y offset" type="D(IMBF-frontend(FEBEFEED))" unit="deg" dataSource="">FEEDOFFY</Ddim>
+<J description="feed number of reference feed" type="J" dataSource="">REFFEED</J>
+<Adim description="Feed type (X, Y, L, R)" type="A(IMBF-frontend(FEBEFEED))" dataSource="">POLTY</Adim>
+<Edim description="Feed orientation" type="E(IMBF-frontend(FEBEFEED))" unit="deg" dataSource="">POLA</Edim>
+<Edim description="Half-power beam width" type="E(IMBF-frontend(FEBEFEED),IMBF-frontend(FEBEBAND))" unit="deg" dataSource="">HPBW</Edim>
+<Edim description="Antenna Gain" type="E(IMBF-frontend(FEBEFEED),IMBF-frontend(FEBEBAND))" unit="K/Jy" dataSource="">ANTGAIN</Edim>
+<Edim description="Bolometer" type="E(IMBF-frontend(FEBEBAND))" unit="Jy/counts" dataSource="">BOLCALFC</Edim>
+<Edim description="Bolometer flat field (relative gains)" type="E(IMBF-frontend(FEBEFEED),IMBF-frontend(FEBEBAND))" dataSource="">FLATFIEL</Edim>
+-->
+			</TABLE>
+		</IMBF-frontend>
+
+		<IMBF-backend content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" needsParentOfType="IMBF-scan">
+			<HEADER>
+<!-- <A description="Frontend-backend combination identification." type="17A" dataSource="">FEBE</A> -->
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<A description="observing date (Y2K format with time) in TIMESYS system (scan start)" type="23A" dataSource="">DATE-OBS</A>
+<J description="\nbd\ number of basebands for this febe" type="J" dataSource="ComClass.NBD">FEBEBAND</J>
+<J description="\nfd\ total number of channels" type="J" dataSource="ComClass.NFD">FEBEFEED</J>
+<!-- <J description="\nusfd\ Number of feeds in use." type="J" dataSource="ComClass.NUSFD">NUSEFEED</J> fix me -->
+<J description="\nch\ Number of channels in use." type="J" dataSource="ComClass.NCH">NUSEFEED</J>
+<J description="No, of data Values Per Phase" type="J" dataSource="">NVPPHASE</J>
+			</HEADER>
+			<TABLE>
+<A description="Detector name" type="5A" dataSource="">name</A>			  
+<J description="Detector number" type="J" dataSource="">num</J>			  
+<J description="Array number" type="J" dataSource="">array</J>
+<J description="Acquisition Box number" type="J" dataSource="">acqbox</J>
+<E description="Array type" type="E" unit="" dataSource="">type</E>
+<E description="Array voie" type="E" unit="" dataSource="">voie</E>
+<E description="Array frequency" type="E" unit="" dataSource="">frequency</E>
+<E description="Array level" type="E" unit="" dataSource="">level</E>
+<E description="Array width" type="E" unit="" dataSource="">width</E>
+<E description="Array flag" type="E" unit="" dataSource="">flag</E>
+<E description="Array tune angle" type="E" unit="" dataSource="">tune_angle</E>
+<E description="Array X_pix" type="E" unit="" dataSource="">X_pix</E>
+<E description="Array Y_pix" type="E" unit="" dataSource="">Y_pix</E>
+
+<!-- 
+ -->
+ 			</TABLE>
+		</IMBF-backend>
+		
+		<IMBF-subscans content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" needsParentOfType="IMBF-backend">
+			<HEADER>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<A description="observing date (Y2K format with time) in TIMESYS system (scan start)" type="23A" dataSource="">DATE-OBS</A>
+<A description="Dewar tracking system" type="05A" dataSource="">DEWRTMOD</A>
+<J description="Dewar angle" type="J" unit="Deg" dataSource="">DEWANG</J>
+<J description="\nbd\ number of basebands for this febe" type="J" dataSource="ComClass.NBD">FEBEBAND</J>
+<J description="\nfd\ total number of feeds" type="J" dataSource="ComClass.NFD">FEBEFEED</J>
+<!-- <J description="\nusfd\ Number of feeds in use." type="J" dataSource="ComClass.NUSFD">NUSEFEED</J> fix me -->
+<J description="\nch\ Number of feeds in use." type="J" dataSource="ComClass.NCH">NUSEFEED</J>
+<J description="No, of data Values Per Phase" type="J" dataSource="">NVPPHASE</J>
+			</HEADER>
+			<TABLE>
+			  <J description="Subscan number"              type="J"   dataSource="">Subscan</J>
+			  <A description="DATE-OBS"                    type="23A" dataSource="">DATE-OBS</A>
+			  <A description="DATE-END"                    type="23A" dataSource="">DATE-END</A>
+			  <A description="Observation type"            type="14A" dataSource="">OBSTYPE</A>
+			  <A description="Subscan type"                type="14A" dataSource="">SUBSTYPE</A>
+			  <E description="[s] Subscan time"            type="E"   dataSource="">SUBSTIME</E>
+			  <A description="System for offsets"          type="20A" dataSource="">SYSTEMOF</A>
+			  <E description="[rad] Subscan x offset"      type="E"   dataSource="">SUBSXOFF</E>
+			  <E description="[rad] Subscan y offset"      type="E"   dataSource="">SUBSYOFF</E>
+			  <A description="Focus translation dir."      type="12A" dataSource="">FOTRANSL</A>
+			  <E description="[mm] Focus offset"           type="E"   dataSource="">FOOFFSET</E>
+			  <D description="Subreflector rotation angle" type="D" unit="rad" dataSource="">FEEDANGL</D>
+			  <A description="Segment type"                type="20A" dataSource="">SETYPE01</A>
+			  <D description="Segment time "               type="D" unit="s"     dataSource="">SETIME01</D>
+			  <D description="Segment x offset "           type="D" unit="rad"   dataSource="">SEXOFF01</D>
+			  <D description="Segment y offset "           type="D" unit="rad"   dataSource="">SEYOFF01</D>
+			  <D description="Segment x start"             type="D" unit="rad"   dataSource="">SEXSTA01</D>
+			  <D description="Segment y start"             type="D" unit="rad"   dataSource="">SEYSTA01</D>
+			  <D description="Segment x end"               type="D" unit="rad"   dataSource="">SEXEND01</D>
+			  <D description="Segment y end"               type="D" unit="rad"   dataSource="">SEYEND01</D>
+			  <D description="Speed at start of segment"   type="D" unit="rad/s" dataSource="">SESPES01</D>
+			  <D description="Speed at end of segment"     type="D" unit="rad/s" dataSource="">SESPEE01</D>
+
+			</TABLE>
+		</IMBF-subscans>
+
+		
+		<Observation content="process">
+		<IMBF-backendCONT content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" requiredTables="IMBF-frontend" needsParentOfType="IMBF-frontend">
+				<HEADER>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<J description="Baseband number" type="J" unit="--" dataSource="">BASEBAND</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<J description="\nch\ Number of channels for this baseband" type="J" dataSource="ComClass.NCH">CHANNELS</J>
+<J description="no. of switch phases in a switch cycle" type="J" dataSource="">NPHASES</J>
+<A description="First phase is ON or OFF source" type="03A" dataSource="">PHASEONE</A>
+<E description="Where the time stamps apply" type="E" unit="" dataSource="">TSTAMPED</E>
+<L description="True if data is normalized" type="L" dataSource="">NORMALIZ</L>
+				</HEADER>
+				<TABLE>
+<J description="Integration point number" type="J" dataSource="">INTEGNUM</J>
+<D description="MJD at integration start" type="D" unit="day" dataSource="">MJD</D>
+<!--<Edim description="Data" type="E(IMBF-frontend(NUSEFEED),IMBF-backendCONT(CHANNELS))" dataSource="">DATA</Edim>-->
+<Edim description="Data" type="J(IMBF-backendCONT(CHANNELS))" dataSource="">DATA</Edim>
+<D description="Integration time" type="D" unit="s" dataSource="">INTEGTIM</D>
+<!--<A description="Integration type" type="04A" dataSource="">ISWITCH</A>-->
+<J description="Integration type" type="J" dataSource="">ISWITCH</J>
+				</TABLE>
+			</IMBF-backendCONT>
+
+			<IMBF-backend100KHZ content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" requiredTables="IMBF-frontend" needsParentOfType="IMBF-frontend">
+				<HEADER>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<J description="Baseband number" type="J" unit="--" dataSource="">BASEBAND</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<J description="\nch\ Number of channels for this baseband" type="J" dataSource="ComClass.NCH">CHANNELS</J>
+<J description="no. of switch phases in a switch cycle" type="J" dataSource="">NPHASES</J>
+<L description="True if data is normalized" type="L" dataSource="">NORMALIZ</L>
+				</HEADER>
+				<TABLE>
+<J description="Integration point number" type="J" dataSource="">INTEGNUM</J>
+<D description="MJD at integration start" type="D" unit="day" dataSource="">MJD</D>
+<!--<Edim description="Data" type="E(IMBF-frontend(NUSEFEED),IMBF-backend100KHZ(CHANNELS))" dataSource="">DATA</Edim>-->
+<Edim description="Data" type="J(IMBF-backend100KHZ(CHANNELS))" dataSource="">DATA</Edim>
+<D description="Integration time" type="D" unit="s" dataSource="">INTEGTIM</D>
+<!--<A description="Integration type" type="04A" dataSource="">ISWITCH</A>-->
+<J description="Integration type" type="J" dataSource="">ISWITCH</J>
+				</TABLE>
+			</IMBF-backend100KHZ>
+
+			<IMBF-backend4MHZ content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" requiredTables="IMBF-frontend" needsParentOfType="IMBF-frontend">
+				<HEADER>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<J description="Baseband number" type="J" unit="--" dataSource="">BASEBAND</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<J description="\nch\ Number of channels for this baseband" type="J" dataSource="ComClass.NCH">CHANNELS</J>
+<J description="no. of switch phases in a switch cycle" type="J" dataSource="">NPHASES</J>
+<A description="First phase is ON or OFF source" type="03A" dataSource="">PHASEONE</A>
+<E description="Where the time stamps apply" type="E" unit="" dataSource="">TSTAMPED</E>
+<L description="True if data is normalized" type="L" dataSource="">NORMALIZ</L>
+				</HEADER>
+				<TABLE>
+<J description="Integration point number" type="J" dataSource="">INTEGNUM</J>
+<D description="MJD at integration start" type="D" unit="day" dataSource="">MJD</D>
+<!--<Edim description="Data" type="E(IMBF-frontend(NUSEFEED),IMBF-backend4MHZ(CHANNELS))" dataSource="">DATA</Edim>-->
+<Edim description="Data" type="J(IMBF-backend4MHZ(CHANNELS))" dataSource="">DATA</Edim>
+<D description="Integration time" type="D" unit="s" dataSource="">INTEGTIM</D>
+<!--<A description="Integration type" type="04A" dataSource="">ISWITCH</A>-->
+<J description="Integration type" type="J" dataSource="">ISWITCH</J>
+				</TABLE>
+			</IMBF-backend4MHZ>
+
+			<IMBF-backendVESPA content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" requiredTables="IMBF-frontend" needsParentOfType="IMBF-frontend">
+				<HEADER>
+<!--
+<A description="Frontend-backend combination ID" type="17A" dataSource="">FEBE</A>
+-->
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<J description="Baseband number" type="J" unit="--" dataSource="">BASEBAND</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<J description="\nch\ Number of channels for this baseband" type="J" dataSource="ComClass.NCH">CHANNELS</J>
+<J description="no. of switch phases in a switch cycle" type="J" dataSource="">NPHASES</J>
+<A description="First phase is ON or OFF source" type="03A" dataSource="">PHASEONE</A>
+<E description="Where the time stamps apply" type="E" unit="" dataSource="">TSTAMPED</E>
+<L description="True if data is normalized" type="L" dataSource="">NORMALIZ</L>
+				</HEADER>
+				<TABLE>
+<J description="Integration point number" type="J" dataSource="">INTEGNUM</J>
+<D description="MJD at integration start" type="D" unit="day" dataSource="">MJD</D>
+<!--<Edim description="Data" type="E(IMBF-frontend(NUSEFEED),IMBF-backendVESPA(CHANNELS))" dataSource="">DATA</Edim>-->
+<Edim description="Data" type="J(IMBF-backendVESPA(CHANNELS))" dataSource="">DATA</Edim>
+<D description="Integration time" type="D" unit="s" dataSource="">INTEGTIM</D>
+<!--<A description="Integration type" type="04A" dataSource="">ISWITCH</A>-->
+<J description="Integration type" type="J" dataSource="">ISWITCH</J>
+				</TABLE>
+			</IMBF-backendVESPA>
+
+			<IMBF-backendWILMA content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" requiredTables="IMBF-frontend" needsParentOfType="IMBF-frontend">
+				<HEADER>
+<!--
+<A description="Frontend-backend combination ID" type="17A" dataSource="">FEBE</A>
+-->
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<J description="Baseband number" type="J" unit="--" dataSource="">BASEBAND</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<J description="\nch\ Number of channels for this baseband" type="J" dataSource="ComClass.NCH">CHANNELS</J>
+<J description="no. of switch phases in a switch cycle" type="J" dataSource="">NPHASES</J>
+<A description="First phase is ON or OFF source" type="03A" dataSource="">PHASEONE</A>
+<E description="Where the time stamps apply" type="E" unit="" dataSource="">TSTAMPED</E>
+<L description="True if data is normalized" type="L" dataSource="">NORMALIZ</L>
+				</HEADER>
+				<TABLE>
+<J description="Integration point number" type="J" dataSource="">INTEGNUM</J>
+<D description="MJD at integration start" type="D" unit="day" dataSource="">MJD</D>
+<!--<Edim description="Data" type="E(IMBF-frontend(NUSEFEED),IMBF-backendWILMA(CHANNELS))" dataSource="">DATA</Edim>-->
+<Edim description="Data" type="J(IMBF-backendWILMA(CHANNELS))" dataSource="">DATA</Edim>
+<D description="Integration time" type="D" unit="s" dataSource="">INTEGTIM</D>
+<!--<A description="Integration type" type="04A" dataSource="">ISWITCH</A>-->
+<J description="Integration type" type="J" dataSource="">ISWITCH</J>
+				</TABLE>
+			</IMBF-backendWILMA>
+
+			<IMBF-backend1MHZ content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" requiredTables="IMBF-frontend" needsParentOfType="IMBF-frontend">
+				<HEADER>
+<!--
+<A description="Frontend-backend combination ID" type="17A" dataSource="">FEBE</A>
+-->
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<J description="Baseband number" type="J" unit="--" dataSource="">BASEBAND</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<J description="\nch\ Number of channels for this baseband" type="J" dataSource="ComClass.NCH">CHANNELS</J>
+<J description="no. of switch phases in a switch cycle" type="J" dataSource="">NPHASES</J>
+<A description="First phase is ON or OFF source" type="03A" dataSource="">PHASEONE</A>
+<E description="Where the time stamps apply" type="E" unit="" dataSource="">TSTAMPED</E>
+<L description="True if data is normalized" type="L" dataSource="">NORMALIZ</L>
+				</HEADER>
+				<TABLE>
+<J description="Integration point number" type="J" dataSource="">INTEGNUM</J>
+<D description="MJD at integration start" type="D" unit="day" dataSource="">MJD</D>
+<!--<Edim description="Data" type="E(IMBF-frontend(NUSEFEED),IMBF-backend1MHZ(CHANNELS))" dataSource="">DATA</Edim>-->
+<Edim description="Data" type="J(IMBF-backend1MHZ(CHANNELS))" dataSource="">DATA</Edim>
+<D description="Integration time" type="D" unit="s" dataSource="">INTEGTIM</D>
+<!--<A description="Integration type" type="04A" dataSource="">ISWITCH</A>-->
+<J description="Integration type" type="J" dataSource="">ISWITCH</J>
+				</TABLE>
+			</IMBF-backend1MHZ>
+
+			<IMBF-backendFTS content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" requiredTables="IMBF-frontend" needsParentOfType="IMBF-frontend">
+				<HEADER>
+<!--
+<A description="Frontend-backend combination ID" type="17A" dataSource="">FEBE</A>
+-->
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<J description="Baseband number" type="J" unit="--" dataSource="">BASEBAND</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<J description="\nch\ Number of channels for this baseband" type="J" dataSource="ComClass.NCH">CHANNELS</J>
+<J description="no. of switch phases in a switch cycle" type="J" dataSource="">NPHASES</J>
+<A description="First phase is ON or OFF source" type="03A" dataSource="">PHASEONE</A>
+<E description="Where the time stamps apply" type="E" unit="" dataSource="">TSTAMPED</E>
+<L description="True if data is normalized" type="L" dataSource="">NORMALIZ</L>
+				</HEADER>
+				<TABLE>
+<J description="Integration point number" type="J" dataSource="">INTEGNUM</J>
+<D description="MJD at integration start" type="D" unit="day" dataSource="">MJD</D>
+<!--<Edim description="Data" type="E(IMBF-frontend(NUSEFEED),IMBF-backendFTS(CHANNELS))" dataSource="">DATA</Edim>-->
+<Edim description="Data" type="E(IMBF-backendFTS(CHANNELS))" dataSource="">DATA</Edim>
+<D description="Integration time" type="D" unit="s" dataSource="">INTEGTIM</D>
+<!--<A description="Integration type" type="04A" dataSource="">ISWITCH</A>-->
+<J description="Integration type" type="J" dataSource="">ISWITCH</J>
+				</TABLE>
+			</IMBF-backendFTS>
+			<IMBF-backendABBA content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" requiredTables="IMBF-frontend" needsParentOfType="IMBF-frontend">
+				<HEADER>
+<!--<A description="Frontend-backend combination ID" type="17A" dataSource="">FEBE</A>-->
+<J description="Baseband number" type="J" unit="--" dataSource="">BASEBAND</J>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<J description="\nch\ Number of channels for this baseband" type="J" dataSource="ComClass.NCH">CHANNELS</J>
+<E description="Bolometer backend gain" type="E" unit="" dataSource="">BOLGAIN</E>
+<J description="no. of switch phases in a switch cycle" type="J" dataSource="">NPHASES</J>
+<A description="First phase is ON or OFF source" type="03A" dataSource="">PHASEONE</A>
+<E description="Where the time stamps apply" type="E" unit="" dataSource="">TSTAMPED</E>
+<L description="True if data is normalized" type="L" dataSource="">NORMALIZ</L>
+				</HEADER>
+				<TABLE>
+<J description="Integration point number" type="J" dataSource="">INTEGNUM</J>
+<D description="MJD at integration start" type="D" unit="day" dataSource="">MJD</D>
+<Edim description="Data" type="J(IMBF-backendABBA(CHANNELS))" dataSource="">DATA</Edim>
+<J description="Integration type" type="J" dataSource="">ISWITCH</J>
+				</TABLE>
+			</IMBF-backendABBA>
+
+			<IMBF-backendNIKA1mm content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" requiredTables="IMBF-frontend" needsParentOfType="IMBF-frontend">
+				<HEADER>
+<!--<A description="Frontend-backend combination ID" type="17A" dataSource="">FEBE</A>-->
+<J description="Baseband number" type="J" unit="--" dataSource="">BASEBAND</J>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<J description="\nch\ Number of channels for this baseband" type="J" dataSource="ComClass.NCH">CHANNELS</J>
+<E description="Bolometer backend gain" type="E" unit="" dataSource="">BOLGAIN</E>
+<J description="no. of switch phases in a switch cycle" type="J" dataSource="">NPHASES</J>
+<A description="First phase is ON or OFF source" type="03A" dataSource="">PHASEONE</A>
+<E description="Where the time stamps apply" type="E" unit="" dataSource="">TSTAMPED</E>
+<L description="True if data is normalized" type="L" dataSource="">NORMALIZ</L>
+				</HEADER>
+				<TABLE>
+<J description="Integration point number" type="J" dataSource="">INTEGNUM</J>
+<D description="MJD at integration start" type="D" unit="day" dataSource="">MJD</D>
+<Edim description="Data" type="D(IMBF-backendNIKA1mm(CHANNELS))" dataSource="">R</Edim>
+<Edim description="Data" type="D(IMBF-backendNIKA1mm(CHANNELS))" dataSource="">I</Edim>
+<Edim description="Data" type="D(IMBF-backendNIKA1mm(CHANNELS))" dataSource="">Q</Edim>
+<Edim description="Data" type="D(IMBF-backendNIKA1mm(CHANNELS))" dataSource="">DI</Edim>
+<Edim description="Data" type="D(IMBF-backendNIKA1mm(CHANNELS))" dataSource="">DQ</Edim>
+<Edim description="Data" type="D(IMBF-backendNIKA1mm(CHANNELS))" dataSource="">PF</Edim>
+<Edim description="Data" type="D(IMBF-backendNIKA1mm(CHANNELS))" dataSource="">FRES</Edim>
+<J description="Integration type" type="J" dataSource="">ISWITCH</J>
+				</TABLE>
+			</IMBF-backendNIKA1mm>
+
+			<IMBF-backendNIKA2mm content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" requiredTables="IMBF-frontend" needsParentOfType="IMBF-frontend">
+				<HEADER>
+<!--<A description="Frontend-backend combination ID" type="17A" dataSource="">FEBE</A>-->
+<J description="Baseband number" type="J" unit="--" dataSource="">BASEBAND</J>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<J description="\nch\ Number of channels for this baseband" type="J" dataSource="ComClass.NCH">CHANNELS</J>
+<E description="Bolometer backend gain" type="E" unit="" dataSource="">BOLGAIN</E>
+<J description="no. of switch phases in a switch cycle" type="J" dataSource="">NPHASES</J>
+<A description="First phase is ON or OFF source" type="03A" dataSource="">PHASEONE</A>
+<E description="Where the time stamps apply" type="E" unit="" dataSource="">TSTAMPED</E>
+<L description="True if data is normalized" type="L" dataSource="">NORMALIZ</L>
+				</HEADER>
+				<TABLE>
+<J description="Integration point number" type="J" dataSource="">INTEGNUM</J>
+<D description="MJD at integration start" type="D" unit="day" dataSource="">MJD</D>
+<Edim description="Data" type="D(IMBF-backendNIKA2mm(CHANNELS))" dataSource="">R</Edim>
+<Edim description="Data" type="D(IMBF-backendNIKA2mm(CHANNELS))" dataSource="">I</Edim>
+<Edim description="Data" type="D(IMBF-backendNIKA2mm(CHANNELS))" dataSource="">Q</Edim>
+<Edim description="Data" type="D(IMBF-backendNIKA2mm(CHANNELS))" dataSource="">DI</Edim>
+<Edim description="Data" type="D(IMBF-backendNIKA2mm(CHANNELS))" dataSource="">DQ</Edim>
+<Edim description="Data" type="D(IMBF-backendNIKA2mm(CHANNELS))" dataSource="">PF</Edim>
+<Edim description="Data" type="D(IMBF-backendNIKA2mm(CHANNELS))" dataSource="">FRES</Edim>
+<J description="Integration type" type="J" dataSource="">ISWITCH</J>
+				</TABLE>
+			</IMBF-backendNIKA2mm>
+			
+			<IMBF-backendNIKA content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" requiredTables="IMBF-frontend" needsParentOfType="IMBF-frontend">
+				<HEADER>
+<!--<A description="Frontend-backend combination ID" type="17A" dataSource="">FEBE</A>-->
+<J description="Baseband number" type="J" unit="--" dataSource="">BASEBAND</J>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<J description="\nch\ Number of channels for this baseband" type="J" dataSource="ComClass.NCH">CHANNELS</J>
+<!--<E description="Bolometer backend gain" type="E" unit="" dataSource="">BOLGAIN</E>-->
+<J description="no. of switch phases in a switch cycle" type="J" dataSource="">NPHASES</J>
+<A description="First phase is ON or OFF source" type="03A" dataSource="">PHASEONE</A>
+<E description="Where the time stamps apply" type="E" unit="" dataSource="">TSTAMPED</E>
+<L description="True if data is normalized" type="L" dataSource="">NORMALIZ</L>
+				</HEADER>
+				<TABLE>
+<J description="Sample number" type="J" dataSource="">INTEGNUM</J>
+<D description="MJD at integration middle" type="D" unit="day" dataSource="">MJD</D>
+<Edim description="Data" type="D(IMBF-backendNIKA(CHANNELS))" dataSource="">I</Edim>
+<Edim description="Data" type="D(IMBF-backendNIKA(CHANNELS))" dataSource="">Q</Edim>
+<Edim description="Data" type="D(IMBF-backendNIKA(CHANNELS))" dataSource="">DI</Edim>
+<Edim description="Data" type="D(IMBF-backendNIKA(CHANNELS))" dataSource="">DQ</Edim>
+<Edim description="Data" type="D(IMBF-backendNIKA(CHANNELS))" dataSource="">FTONE</Edim>
+<!--<Edim description="Data" type="D(IMBF-backendNIKA(CHANNELS))" dataSource="">DFTONE</Edim>-->
+<Jdim description="Data" type="J(IMBF-backendNIKA(CHANNELS))" dataSource="">KFLAG</Jdim>
+<!--<Edim description="Data" type="D(IMBF-backendNIKA(CHANNELS))" dataSource="">R</Edim>-->
+<J description="Switching phase" type="J" dataSource="">ISWITCH</J>
+<D description="UTC time sec.of day" type="D" unit="seconds" dataSource="">PPS_t</D>
+<D description="Maximum time offset" type="D" unit="microseconds" dataSource="">PPS_diff</D>
+
+				</TABLE>
+			</IMBF-backendNIKA>
+
+			<MONITOR-MBFITS content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" needsParentOfType="IMBF-frontend">
+				<HEADER>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<A description="" type="23A" unit="observing date in TIMESYS system at monitor point" dataSource="">DATE-OBS</A>
+				</HEADER>
+				<TABLE>
+<D description="day" type="D" dataSource="">MJD</D>
+<A description="Monitor point description" type="30A" dataSource="">MONPOINT</A>
+<P description="Pointer to monitor values (doubles)" type="1PD(3,IMBF-frontend(NUSEFEED),IMBF-frontend(FEBEBAND))" dataSource="">MONVALUE</P>
+<P description="Pointer to units for monitor point (ascii)" type="1PA(3,IMBF-frontend(NUSEFEED),IMBF-frontend(FEBEBAND))" dataSource="">MONUNITS</P>
+				</TABLE>
+			</MONITOR-MBFITS>
+
+      <DAP content="process">
+	<IMBF-antenna content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" needsParentOfType="IMBF-frontend">
+	  <HEADER>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<!-- <A description="FEBE descriptor" type="17A" dataSource="">FEBE</A> -->
+<D description="Local apparent sidereal time (obs. start)" type="D" unit="s" dataSource="">LST</D>
+<A description="Observation type" type="04A" dataSource="">OBSTYPE</A>
+<A description="Receiver used for SSB calibration" type="04A" dataSource="">SBCALREC</A>
+<!-- Most the SCAN* keywords replaced  for NCS -->
+<A description="Subscan type" type="20A" dataSource="" >SUBSTYPE</A>
+<D description="Subscan time " type="D" unit="s" dataSource="">SUBSTIME</D>
+<A description="System for offsets" type="20A" dataSource="">SYSTEMOF</A>
+<D description="Subscan x offset " type="D" unit="rad" dataSource="">SUBSXOFF</D>
+<D description="Subscan y offset " type="D" unit="rad" dataSource="">SUBSYOFF</D>
+<D description="Focus translation direction" type="A" unit="" dataSource="">FOTRANSL</D>
+<D description="Focus offset" type="D" unit="mm" dataSource="">FOOFFSET</D>
+<D description="Subreflector rotation angle" type="D" unit="rad" dataSource="">FEEDANGL</D>
+
+<A description="Segment type" type="20A" dataSource="">SETYPE01</A>
+<D description="Segment time " type="D" unit="s" dataSource="">SETIME01</D>
+<D description="Segment x offset " type="D" unit="rad" dataSource="">SEXOFF01</D>
+<D description="Segment y offset " type="D" unit="rad" dataSource="">SEYOFF01</D>
+<D description="Segment x start" type="D" unit="rad" dataSource="">SEXSTA01</D>
+<D description="Segment y start" type="D" unit="rad" dataSource="">SEYSTA01</D>
+<D description="Segment x end" type="D" unit="rad" dataSource="">SEXEND01</D>
+<D description="Segment y end" type="D" unit="rad" dataSource="">SEYEND01</D>
+<D description="Speed at start of segment" type="D" unit="rad/s" dataSource="">SESPES01</D>
+<D description="Speed at end of segment"   type="D" unit="rad/s" dataSource="">SESPEE01</D>
+<D description="Doppler correction factor" type="D" unit="" dataSource="">DOPPLERC</D>
+<D description="Observer velocity in rest frame" type="D" unit="km/s" dataSource="">OBSVELRF</D>
+<J description="No. of slow traces per second" type="J" unit="Hz" dataSource="">SLOWRATE</J>  
+<J description="No. of fast traces per slow trace" type="J" unit="" dataSource="ComClass.TRACERAT">TRACERAT</J>  
+<L description="Data blocking?" type="L" dataSource="">DPBLOCK</L>
+<A description="Observation ok? OK/ABORT (if aborted)." type="10A" dataSource="">OBSTATUS</A>
+	  </HEADER>
+	  <TABLE>
+<J description="Integration point number" type="J" dataSource="">INTEGNUM</J>
+<!--
+<J description="Integrations in block" type="J" dataSource="">NINTS</J>
+-->
+<D description="MJD at integration start" type="D" unit="Julian day" dataSource="">MJD</D>
+<D description="Local apparent sidereal time (integration start)" type="D" unit="s" dataSource="">LST</D>
+<!--
+<D description="Time of midpoint of observations {\bf in MJD format" type="D" dataSource="">MIDTIME</D>
+-->
+<D description="long. offset from source in user native frame (derived)" type="D" unit="rad" dataSource="">LONGOFF</D>
+<D description="lat. offset from source in user native frame (derived)" type="D" unit="rad" dataSource="">LATOFF</D>
+<!--
+<D description="Commanded long. in astronomical basis frame (defined by CTYPE)" type="D" unit="deg" dataSource="">CBASLONG</D>
+<D description="Commanded lat. in astronomical basis frame (defined by CTYPE)" type="D" unit="deg" dataSource="">CBASLAT</D>
+-->
+<D description="Commanded Azimuth" type="D" unit="rad" dataSource="">CAZIMUTH</D>
+<D description="Commanded Elevation" type="D" unit="rad" dataSource="">CELEVATIO</D>
+
+<D description="Actual long. in astronomical basis frame" type="D" unit="rad" dataSource="">BASLONG</D>
+<D description="Actual lat. in astronomical basis frame" type="D" unit="rad" dataSource="">BASLAT</D>
+<D description="Parallactic angle of array centre" type="D" unit="rad" dataSource="">PARANGLE</D>
+<D description="Segment Number" type="J" unit="" dataSource="">INSEGMENT</D>
+<D description="Trace Flag" type="J" unit="" dataSource="">TRACEFLAG</D>
+
+<Edim description="MJD at integration start" type="D(IMBF-antenna(TRACERAT))" unit="Julian day" dataSource="">MJDFAST</Edim>
+<Edim description="Encoder Azimuth" type="D(IMBF-antenna(TRACERAT))" unit="rad" dataSource="">AZIMUTH</Edim>
+<Edim description="Azimuth tracking" type="D(IMBF-antenna(TRACERAT))" unit="rad" dataSource="">TRACKING_AZ</Edim>
+<Edim description="Encoder Elevation" type="D(IMBF-antenna(TRACERAT))" unit="rad" dataSource="">ELEVATION</Edim>
+<Edim description="Elevation tracking" type="D(IMBF-antenna(TRACERAT))" unit="rad" dataSource="">TRACKING_EL</Edim>
+<Edim description="Azimuth track Flag" type="J(IMBF-antenna(TRACERAT))" unit="" dataSource="">AZTRACKFLAG</Edim>
+<Edim description="Elevation track Flag" type="J(IMBF-antenna(TRACERAT))" unit="" dataSource="">ELTRACKFLAG</Edim>
+
+	  </TABLE>
+	</IMBF-antenna>
+	<IMBF-antenna-s content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" needsParentOfType="IMBF-frontend">
+	  <HEADER>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<!-- <A description="FEBE descriptor" type="17A" dataSource="">FEBE</A> -->
+<D description="Local apparent sidereal time (obs. start)" type="D" unit="s" dataSource="">LST</D>
+<A description="Observation type" type="04A" dataSource="">OBSTYPE</A>
+<A description="Receiver used for SSB calibration" type="04A" dataSource="">SBCALREC</A>
+<!-- Most the SCAN* keywords replaced  for NCS -->
+<A description="Subscan type" type="20A" dataSource="" >SUBSTYPE</A>
+<D description="Subscan time " type="D" unit="s" dataSource="">SUBSTIME</D>
+<A description="System for offsets" type="20A" dataSource="">SYSTEMOF</A>
+<D description="Subscan x offset " type="D" unit="rad" dataSource="">SUBSXOFF</D>
+<D description="Subscan y offset " type="D" unit="rad" dataSource="">SUBSYOFF</D>
+<D description="Focus translation direction" type="A" unit="" dataSource="">FOTRANSL</D>
+<D description="Focus offset" type="D" unit="mm" dataSource="">FOOFFSET</D>
+<D description="Subreflector rotation angle" type="D" unit="rad" dataSource="">FEEDANGL</D>
+
+<A description="Segment type" type="20A" dataSource="">SETYPE01</A>
+<D description="Segment time " type="D" unit="s" dataSource="">SETIME01</D>
+<D description="Segment x offset " type="D" unit="rad" dataSource="">SEXOFF01</D>
+<D description="Segment y offset " type="D" unit="rad" dataSource="">SEYOFF01</D>
+<D description="Segment x start" type="D" unit="rad" dataSource="">SEXSTA01</D>
+<D description="Segment y start" type="D" unit="rad" dataSource="">SEYSTA01</D>
+<D description="Segment x end" type="D" unit="rad" dataSource="">SEXEND01</D>
+<D description="Segment y end" type="D" unit="rad" dataSource="">SEYEND01</D>
+<D description="Speed at start of segment" type="D" unit="rad/s" dataSource="">SESPES01</D>
+<D description="Speed at end of segment"   type="D" unit="rad/s" dataSource="">SESPEE01</D>
+<D description="Doppler correction factor" type="D" unit="" dataSource="">DOPPLERC</D>
+<D description="Observer velocity in rest frame" type="D" unit="km/s" dataSource="">OBSVELRF</D>
+<J description="No. of slow traces per second" type="J" unit="Hz" dataSource="">SLOWRATE</J>  
+<J description="No. of fast traces per slow trace" type="J" unit="" dataSource="ComClass.TRACERAT">TRACERAT</J>  
+<L description="Data blocking?" type="L" dataSource="">DPBLOCK</L>
+<A description="Observation ok? OK/ABORT (if aborted)." type="10A" dataSource="">OBSTATUS</A>
+	  </HEADER>
+	  <TABLE>
+<J description="Integration point number" type="J" dataSource="">INTEGNUM</J>
+<!--
+<J description="Integrations in block" type="J" dataSource="">NINTS</J>
+-->
+<D description="MJD at integration start" type="D" unit="Julian day" dataSource="">MJD</D>
+<D description="Local apparent sidereal time (integration start)" type="D" unit="s" dataSource="">LST</D>
+<!--
+<D description="Time of midpoint of observations {\bf in MJD format" type="D" dataSource="">MIDTIME</D>
+-->
+<D description="long. offset from source in user native frame (derived)" type="D" unit="rad" dataSource="">LONGOFF</D>
+<D description="lat. offset from source in user native frame (derived)" type="D" unit="rad" dataSource="">LATOFF</D>
+<!--
+<D description="Commanded long. in astronomical basis frame (defined by CTYPE)" type="D" unit="deg" dataSource="">CBASLONG</D>
+<D description="Commanded lat. in astronomical basis frame (defined by CTYPE)" type="D" unit="deg" dataSource="">CBASLAT</D>
+-->
+<D description="Commanded Azimuth" type="D" unit="rad" dataSource="">CAZIMUTH</D>
+<D description="Commanded Elevation" type="D" unit="rad" dataSource="">CELEVATIO</D>
+
+<D description="Actual long. in astronomical basis frame" type="D" unit="rad" dataSource="">BASLONG</D>
+<D description="Actual lat. in astronomical basis frame" type="D" unit="rad" dataSource="">BASLAT</D>
+<D description="Parallactic angle of array centre" type="D" unit="rad" dataSource="">PARANGLE</D>
+<D description="Segment Number" type="J" unit="" dataSource="">INSEGMENT</D>
+<D description="Trace Flag" type="J" unit="" dataSource="">TRACEFLAG</D>
+
+<!--
+<Edim description="MJD at integration start" type="D(IMBF-antenna(TRACERAT))" unit="Julian day" dataSource="">MJDFAST</Edim>
+<Edim description="Encoder Azimuth" type="D(IMBF-antenna(TRACERAT))" unit="rad" dataSource="">AZIMUTH</Edim>
+<Edim description="Azimuth tracking" type="D(IMBF-antenna(TRACERAT))" unit="rad" dataSource="">TRACKING_AZ</Edim>
+<Edim description="Encoder Elevation" type="D(IMBF-antenna(TRACERAT))" unit="rad" dataSource="">ELEVATION</Edim>
+<Edim description="Elevation tracking" type="D(IMBF-antenna(TRACERAT))" unit="rad" dataSource="">TRACKING_EL</Edim>
+<Edim description="Azimuth track Flag" type="J(IMBF-antenna(TRACERAT))" unit="" dataSource="">AZTRACKFLAG</Edim>
+<Edim description="Elevation track Flag" type="J(IMBF-antenna(TRACERAT))" unit="" dataSource="">ELTRACKFLAG</Edim>
+-->
+	  </TABLE>
+	</IMBF-antenna-s>
+	<IMBF-antenna-f content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" needsParentOfType="IMBF-frontend">
+	  <HEADER>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<!-- <A description="FEBE descriptor" type="17A" dataSource="">FEBE</A> -->
+<D description="Local apparent sidereal time (obs. start)" type="D" unit="s" dataSource="">LST</D>
+<A description="Observation type" type="04A" dataSource="">OBSTYPE</A>
+<A description="Receiver used for SSB calibration" type="04A" dataSource="">SBCALREC</A>
+<!-- Most the SCAN* keywords replaced  for NCS -->
+<A description="Subscan type" type="20A" dataSource="" >SUBSTYPE</A>
+<D description="Subscan time " type="D" unit="s" dataSource="">SUBSTIME</D>
+<A description="System for offsets" type="20A" dataSource="">SYSTEMOF</A>
+<D description="Subscan x offset " type="D" unit="rad" dataSource="">SUBSXOFF</D>
+<D description="Subscan y offset " type="D" unit="rad" dataSource="">SUBSYOFF</D>
+<D description="Focus translation direction" type="A" unit="" dataSource="">FOTRANSL</D>
+<D description="Focus offset" type="D" unit="mm" dataSource="">FOOFFSET</D>
+<D description="Subreflector rotation angle" type="D" unit="rad" dataSource="">FEEDANGL</D>
+
+<A description="Segment type" type="20A" dataSource="">SETYPE01</A>
+<D description="Segment time " type="D" unit="s" dataSource="">SETIME01</D>
+<D description="Segment x offset " type="D" unit="rad" dataSource="">SEXOFF01</D>
+<D description="Segment y offset " type="D" unit="rad" dataSource="">SEYOFF01</D>
+<D description="Segment x start" type="D" unit="rad" dataSource="">SEXSTA01</D>
+<D description="Segment y start" type="D" unit="rad" dataSource="">SEYSTA01</D>
+<D description="Segment x end" type="D" unit="rad" dataSource="">SEXEND01</D>
+<D description="Segment y end" type="D" unit="rad" dataSource="">SEYEND01</D>
+<D description="Speed at start of segment" type="D" unit="rad/s" dataSource="">SESPES01</D>
+<D description="Speed at end of segment"   type="D" unit="rad/s" dataSource="">SESPEE01</D>
+<D description="Doppler correction factor" type="D" unit="" dataSource="">DOPPLERC</D>
+<D description="Observer velocity in rest frame" type="D" unit="km/s" dataSource="">OBSVELRF</D>
+<J description="No. of slow traces per second" type="J" unit="Hz" dataSource="">SLOWRATE</J>  
+<J description="No. of fast traces per slow trace" type="J" unit="" dataSource="ComClass.TRACERAT">TRACERAT</J>  
+<L description="Data blocking?" type="L" dataSource="">DPBLOCK</L>
+<A description="Observation ok? OK/ABORT (if aborted)." type="10A" dataSource="">OBSTATUS</A>
+	  </HEADER>
+	  <TABLE>
+<J description="Integration point number" type="J" dataSource="">INTEGNUM</J>
+<!--
+<D description="MJD at integration start" type="D" unit="Julian day" dataSource="">MJD</D>
+<D description="Local apparent sidereal time (integration start)" type="D" unit="s" dataSource="">LST</D>
+<D description="long. offset from source in user native frame (derived)" type="D" unit="rad" dataSource="">LONGOFF</D>
+<D description="lat. offset from source in user native frame (derived)" type="D" unit="rad" dataSource="">LATOFF</D>
+<D description="Commanded Azimuth" type="D" unit="rad" dataSource="">CAZIMUTH</D>
+<D description="Commanded Elevation" type="D" unit="rad" dataSource="">CELEVATIO</D>
+
+<D description="Actual long. in astronomical basis frame" type="D" unit="rad" dataSource="">BASLONG</D>
+<D description="Actual lat. in astronomical basis frame" type="D" unit="rad" dataSource="">BASLAT</D>
+<D description="Parallactic angle of array centre" type="D" unit="rad" dataSource="">PARANGLE</D>
+<D description="Segment Number" type="J" unit="" dataSource="">INSEGMENT</D>
+<D description="Trace Flag" type="J" unit="" dataSource="">TRACEFLAG</D>
+-->
+<Edim description="MJD at integration start" type="D(IMBF-antenna-f(TRACERAT))" unit="Julian day" dataSource="">MJDFAST</Edim>
+<Edim description="Encoder Azimuth" type="D(IMBF-antenna-f(TRACERAT))" unit="rad" dataSource="">AZIMUTH</Edim>
+<Edim description="Azimuth tracking" type="D(IMBF-antenna-f(TRACERAT))" unit="rad" dataSource="">TRACKING_AZ</Edim>
+<Edim description="Encoder Elevation" type="D(IMBF-antenna-f(TRACERAT))" unit="rad" dataSource="">ELEVATION</Edim>
+<Edim description="Elevation tracking" type="D(IMBF-antenna-f(TRACERAT))" unit="rad" dataSource="">TRACKING_EL</Edim>
+<Edim description="Azimuth track Flag" type="J(IMBF-antenna-f(TRACERAT))" unit="" dataSource="">AZTRACKFLAG</Edim>
+<Edim description="Elevation track Flag" type="J(IMBF-antenna-f(TRACERAT))" unit="" dataSource="">ELTRACKFLAG</Edim>
+
+	  </TABLE>
+	</IMBF-antenna-f>
+
+	<DATAPA2-MBFITS content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" needsParentOfType="IMBF-frontend">
+	  <HEADER>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<A description="FEBE descriptor" type="17A" dataSource="">FEBE</A>
+<D description="Local apparent sidereal time (obs. start)" type="D" unit="s" dataSource="">LST</D>
+<A description="Observation type" type="04A" dataSource="">OBSTYPE</A>
+<!-- Most the SCAN* keywords replaced  for NCS -->
+<A description="Subscan type" type="20A" dataSource="" >SUBSTYPE</A>
+<D description="Subscan time " type="D" unit="s" dataSource="">SUBSTIME</D>
+<A description="System for offsets" type="20A" dataSource="">SYSTEMOF</A>
+<D description="Subscan x offset " type="D" unit="rad" dataSource="">SUBSXOFF</D>
+<D description="Subscan y offset " type="D" unit="rad" dataSource="">SUBSYOFF</D>
+<D description="Focus translation direction" type="A" unit="" dataSource="">FOTRANSL</D>
+<D description="Focus offset" type="D" unit="mm" dataSource="">FOOFFSET</D>
+<D description="Subreflector rotation angle" type="D" unit="rad" dataSource="">FEEDANGL</D>
+
+<A description="Segment type" type="20A" dataSource="">SETYPE01</A>
+<D description="Segment time " type="D" unit="s" dataSource="">SETIME01</D>
+<D description="Segment x offset " type="D" unit="rad" dataSource="">SEXOFF01</D>
+<D description="Segment y offset " type="D" unit="rad" dataSource="">SEYOFF01</D>
+<D description="Segment x start" type="D" unit="rad" dataSource="">SEXSTA01</D>
+<D description="Segment y start" type="D" unit="rad" dataSource="">SEYSTA01</D>
+<D description="Segment x end" type="D" unit="rad" dataSource="">SEXEND01</D>
+<D description="Segment y end" type="D" unit="rad" dataSource="">SEYEND01</D>
+<D description="Speed at start of segment" type="D" unit="rad/s" dataSource="">SESPES01</D>
+<D description="Speed at end of segment"   type="D" unit="rad/s" dataSource="">SESPEE01</D>
+
+<D description="Doppler correction factor" type="D" unit="" dataSource="">DOPPLERC</D>
+<D description="Observer velocity in rest frame" type="D" unit="km/s" dataSource="">OBSVELRF</D>
+
+<L description="Data blocking?" type="L" dataSource="">DPBLOCK</L>
+<A description="Observation ok? OK/ABORT (if aborted)." type="10A" dataSource="">OBSTATUS</A>
+	  </HEADER>
+
+	  <TABLE>
+<J description="Integration point number" type="J" dataSource="">INTEGNUM</J>
+<!--
+<J description="Integrations in block" type="J" dataSource="">NINTS</J>
+-->
+<D description="MJD at integration start" type="D" unit="Julian day" dataSource="">MJD</D>
+<D description="Local apparent sidereal time (integration start)" type="D" unit="s" dataSource="">LST</D>
+<!--
+<D description="Time of midpoint of observations {\bf in MJD format" type="D" dataSource="">MIDTIME</D>
+-->
+<D description="Encoder Azimuth" type="D" unit="rad" dataSource="">AZIMUTH</D>
+<D description="Azimuth tracking" type="D" unit="rad" dataSource="">TRACKING_AZ</D>
+<D description="Encoder Elevation" type="D" unit="rad" dataSource="">ELEVATION</D>
+<D description="Elevation tracking" type="D" unit="rad" dataSource="">TRACKING_EL</D>
+<J description="Azimuth track Flag" type="J" unit="" dataSource="">AZTRACKFLAG</J>
+<J description="Elevation track Flag" type="J" unit="" dataSource="">ELTRACKFLAG</J>
+
+				</TABLE>
+			    </DATAPA2-MBFITS>
+	<IMBF-subreflector content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" needsParentOfType="IMBF-frontend">
+	  <HEADER>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<!-- <A description="FEBE descriptor" type="17A" dataSource="">FEBE</A> -->
+<D description="Local apparent sidereal time (obs. start)" type="D" unit="s" dataSource="">LST</D>
+<A description="Observation type" type="04A" dataSource="">OBSTYPE</A>
+<A description="Receiver used for SSB calibration" type="04A" dataSource="">SBCALREC</A>
+<!-- Most the SCAN* keywords replaced  for NCS -->
+<A description="Subscan type" type="20A" dataSource="" >SUBSTYPE</A>
+<D description="Subscan time " type="D" unit="s" dataSource="">SUBSTIME</D>
+<A description="System for offsets" type="20A" dataSource="">SYSTEMOF</A>
+<D description="Subscan x offset " type="D" unit="rad" dataSource="">SUBSXOFF</D>
+<D description="Subscan y offset " type="D" unit="rad" dataSource="">SUBSYOFF</D>
+<D description="Focus translation direction" type="A" unit="" dataSource="">FOTRANSL</D>
+<D description="Focus offset" type="D" unit="mm" dataSource="">FOOFFSET</D>
+<D description="Subreflector rotation angle" type="D" unit="rad" dataSource="">FEEDANGL</D>
+
+<A description="Segment type" type="20A" dataSource="">SETYPE01</A>
+<D description="Segment time " type="D" unit="s" dataSource="">SETIME01</D>
+<D description="Segment x offset " type="D" unit="rad" dataSource="">SEXOFF01</D>
+<D description="Segment y offset " type="D" unit="rad" dataSource="">SEYOFF01</D>
+<D description="Segment x start" type="D" unit="rad" dataSource="">SEXSTA01</D>
+<D description="Segment y start" type="D" unit="rad" dataSource="">SEYSTA01</D>
+<D description="Segment x end" type="D" unit="rad" dataSource="">SEXEND01</D>
+<D description="Segment y end" type="D" unit="rad" dataSource="">SEYEND01</D>
+<D description="Speed at start of segment" type="D" unit="rad/s" dataSource="">SESPES01</D>
+<D description="Speed at end of segment"   type="D" unit="rad/s" dataSource="">SESPEE01</D>
+
+<D description="Doppler correction factor" type="D" unit="" dataSource="">DOPPLERC</D>
+<D description="Observer velocity in rest frame" type="D" unit="km/s" dataSource="">OBSVELRF</D>
+
+<L description="Data blocking?" type="L" dataSource="">DPBLOCK</L>
+<A description="Observation ok? OK/ABORT (if aborted)." type="10A" dataSource="">OBSTATUS</A>
+	  </HEADER>
+
+	  <TABLE>
+<J description="Integration point number" type="J" dataSource="">INTEGNUM</J>
+<D description="MJD at integration start" type="D" unit="Julian day" dataSource="">MJD</D>
+<D description="Focus (subreflector position in X" type="D" unit="mm" dataSource="">FOCUS_X</D>
+<D description="Focus (subreflector position in Y" type="D" unit="mm" dataSource="">FOCUS_Y</D>
+<D description="Focus (subreflector position in Z" type="D" unit="mm" dataSource="">FOCUS_Z</D>
+
+<D description="Phi (subreflector rotation) X" type="D" unit="rad" dataSource="">PHI_X</D>
+<D description="Phi (subreflector rotation) Y" type="D" unit="rad" dataSource="">PHI_Y</D>
+<D description="Phi (subreflector rotation) Z" type="D" unit="rad" dataSource="">PHI_Z</D>
+<D description="Prime focus feed angle" type="D" unit="rad" dataSource="">FEEDANGLE</D>
+
+				</TABLE>
+			    </IMBF-subreflector>
+	<IMBF-hera-cryot content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" needsParentOfType="IMBF-frontend">
+	  <HEADER>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<D description="Subscan time " type="D" unit="s" dataSource="">SUBSTIME</D>
+
+	  </HEADER>
+
+	  <TABLE>
+<A description="Date-, Time-stamp" type="23A" dataSource="">DATE</A>
+<D description="Time-stamp in UTC" type="D" unit="seconds" dataSource="">UTC</D>
+<D description="MJD at integration start" type="D" unit="Julian day" dataSource="">MJD</D>
+
+<E description="HERA 1" type="E" unit="Kelvin" dataSource="">cr4K</E>
+<E description="HERA 1" type="E" unit="Kelvin" dataSource="">ifAmp</E>
+<E description="HERA 1" type="E" unit="Kelvin" dataSource="">tShield</E>
+
+<E description="Cooling stage 1" type="E" unit="Kelvin" dataSource="">tStg1</E>
+<E description="Cooling stage 2" type="E" unit="Kelvin" dataSource="">tStg2</E>
+<E description="Cooling stage 3" type="E" unit="Kelvin" dataSource="">tStg3</E>
+
+<E description="Ambient Load" type="E" unit="Kelvin" dataSource="">tHot</E>
+<E description="Cold Load"    type="E" unit="Kelvin" dataSource="">tCold</E>
+
+<E description="HERA 2" type="E" unit="Kelvin" dataSource="">cr4K2</E>
+<E description="HERA 2" type="E" unit="Kelvin" dataSource="">ifAmp2</E>
+<E description="HERA 2" type="E" unit="Kelvin" dataSource="">tShield2</E>
+
+				</TABLE>
+			    </IMBF-hera-cryot>
+	<IMBF-hera-derot content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" needsParentOfType="IMBF-frontend">
+	  <HEADER>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<D description="Subscan time " type="D" unit="s" dataSource="">SUBSTIME</D>
+
+	  </HEADER>
+
+	  <TABLE>
+<A description="Date-, Time-stamp" type="23A" dataSource="">DATE</A>
+<D description="Time-stamp in UTC" type="D" unit="seconds" dataSource="">UTC</D>
+<D description="MJD at integration start" type="D" unit="Julian day" dataSource="">MJD</D>
+
+<A description="Derotator System" type="2A" dataSource="">system</A>
+
+<E description="Wanted angle in system f" type="E" unit="deg" dataSource="">fWant</E>
+<E description="Wanted angle in system h" type="E" unit="deg" dataSource="">hWant</E>
+<E description="Wanted angle in system s" type="E" unit="deg" dataSource="">sWant</E>
+
+<E description="Actual angle in system f" type="E" unit="deg" dataSource="">fAct</E>
+<E description="Actual angle in system h" type="E" unit="deg" dataSource="">hAct</E>
+<E description="Actual angle in system s" type="E" unit="deg" dataSource="">sAct</E>
+				</TABLE>
+			    </IMBF-hera-derot>
+	<IMBF-tau-225G content="table" initrows="0" tablerev="" tform1="FEBE" ttype1="15A" type="2" needsParentOfType="IMBF-frontend">
+	  <HEADER>
+<J description="Scan number" type="J" dataSource="">SCANNUM</J>
+<J description="Observation number" type="J" dataSource="">OBSNUM</J>
+<A description="observation start in TIMESYS system" type="23A" dataSource="">DATE-OBS</A>
+<A description="observation end in TIMESYS system" type="23A" dataSource="">DATE-END</A>
+<D description="Subscan time " type="D" unit="s" dataSource="">SUBSTIME</D>
+
+	  </HEADER>
+
+	  <TABLE>
+<A description="Date-, Time-stamp" type="23A" dataSource="">DATE</A>
+<!-- <D description="Time-stamp in UTC" type="D" unit="seconds" dataSource="">UTC</D> -->
+<D description="MJD " type="D" unit="Julian day" dataSource="">MJD</D>
+
+<E description="Tau zenith" type="E" unit="deg" dataSource="">Tau225</E>
+<E description="Sigma" type="E" unit="deg" dataSource="">Sigma</E>
+<E description="Fit" type="E" unit="deg" dataSource="">Fit</E>
+				</TABLE>
+			    </IMBF-tau-225G>
+			</DAP>
+		</Observation>
+	</FEBECombinations>
+</Scan>

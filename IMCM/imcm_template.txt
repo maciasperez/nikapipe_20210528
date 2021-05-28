@@ -1,0 +1,19 @@
+method_num = 211
+ext = 'imcm'
+reset_preproc_data = 0
+iter_min = 0
+iter_max = 0
+preproc_copy=1
+fourier_opt_sample = 1
+snr_thres_1mm  =  4
+snr_thres_2mm  =  4
+radius_iter_mask  = 0
+plot_z = 1
+postscript  =  0
+png  =  0
+keep_save_files_all_iter = 0
+keep_save_files_last_iter = 0
+fits_extension=1
+reset_noise=1
+
+

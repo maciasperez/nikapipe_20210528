@@ -1,0 +1,209 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage{epsfig}
+\usepackage{latexsym}
+\usepackage{graphicx}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{xcolor}
+
+%-----------------------------------------
+% Pour accepter les lettres accentuees de clavier azerty
+% sans les \'e (utile) pour tapper directement en azerty 
+% et ou faire passer aspell -c --lang=fr bidon.tex
+%\usepackage[latin1]{inputenc}
+%------------------------------------------
+
+
+%\topmargin=-3cm
+\topmargin=-1cm
+\oddsidemargin=-1cm
+\evensidemargin=-1cm
+\textwidth=17cm
+%\textheight=27cm
+\textheight=25cm
+\raggedbottom
+\sloppy
+
+\definecolor{Blue}{rgb}{0.,0.,1.}
+\definecolor{LightSkyBlue}{rgb}{0.691,0.827,1.}
+\definecolor{Red}{rgb}{1.,0.,0.}
+\definecolor{Green}{rgb}{0.,1.,0.}
+\definecolor{Purple}{rgb}{0.5, 0., 0.5}
+\definecolor{Try}{rgb}{0.15,0.,1}
+\definecolor{Black}{rgb}{0., 0., 0.}
+
+\title{NIKA: Notice for Observers}
+\author{N.~Ponthieu\footnote{Nicolas.Ponthieu@obs.ujf-grenoble.fr}}
+%Institut de Plan\'etologie et d'Astrophysique de Grenoble (IPAG),\\
+% CNRS and Universit\'e de Grenoble,\\
+%France}
+
+\begin{document}
+\maketitle
+
+\abstract{This notice gathers instructions for observers using the NIKA
+  instrument.}
+
+\section{Getting Ready}
+
+\begin{enumerate}
+\item From the main control terminal, log on {\tt mrt-lx1.iram.es}. Let's call
+  T1 this terminal that will be dedicated to PAKO.
+\item From anothe terminal, log on {\tt mrt-lx1.iram.es}. Let's call T2 this
+  terminal dedicated to IDL real time analaysis.
+\item From another terminal, log on {\tt mrt-lx3.iram.es}. Let's call T3 this
+  terminal, that will be dedicated to Xephem.
+\end{enumerate}
+
+\subsection{PaKo}
+In T1:
+\begin{enumerate}
+\item type {\tt goPako}
+\item type {\tt PakoDisplay}
+\item type {\tt PakoNIKA}
+\end{enumerate}
+
+\subsection{Xephem}
+In T3:
+\begin{enumerate}
+\item type {\tt ps xa |grep azElToXephem.py \&} to check if the script is
+  already running.
+\item If yes, then do nothing. If not, then type {\tt azElToXephem.py \&}
+\item Once the script is running, type {\tt xephem \&}
+\end{enumerate}
+
+\subsection{IDL set up}
+In T2, you will log in and work on SAMI, the computer dedicated to NIKA data
+processing during observations:
+\begin{enumerate}
+\item type {\tt ssh\_sami}\footnote{This is an alias to {\tt ssh observer@150.214.224.22 -Y} with password {\tt nika30m}.}
+\item type rt. This will put you in the ``Realtime'' directory.
+\item type {\tt emacs \&}. This will allow you to edit the scripts
+  relevant for real time data analysis.
+\item type {\tt idl}
+\end{enumerate}
+
+\section{Analyzing data}
+
+Shortly after a scan is done, the NIKA scientific data and the AntennaIMBfits
+are written on SAMI and can be processed. There are two types of observation:
+the ``science'' scans and the ``calibration'' scans. There is a specific routine
+to analyze each type of scan.
+
+\begin{itemize}
+\item The science scans are meant
+  to be optimally processed offline with taylored procedures. The real time
+  software mentionned in this note only aims at giving a quick feedback
+\item The calibration scans expect actions from the observer and interaction with
+  PaKo.
+\end{itemize}
+
+\subsection{Calibration scans}
+
+\subsubsection{Pointing}
+
+\begin{enumerate}
+\item In the emacs window, edit run\_pointing.pro and update the {\tt day} and
+  {\tt scan\_num} parameters.
+\item update the {\tt p2cor} and {\tt p7cor} parameters with the ``SET
+  POINTING'' values displayed in the PAKO window.
+\item Save the file
+\item In the idl session in T2, type {\tt .r run\_pointing}
+\item Several plot windows might be on top of eachother
+\item Follow instructions returned by the code in T2. By default, follow
+  instructions ``B (2mm) : (MAP) (for PAKO and pointing model)''.
+\end{enumerate}
+
+\subsubsection{Pointing\_liss}
+
+\begin{enumerate}
+\item In the emacs window, edit run\_pointing\_liss.pro and update the {\tt day}
+  and {\tt scan\_num} parameters.
+\item Save the file
+\item In the idl session in T2, type {\tt .r run\_pointing\_liss}
+\item Several plot windows might be on top of eachother
+\item Follow instructions returned by the code in T2
+\end{enumerate}
+
+\subsubsection{Focus}
+
+\begin{enumerate}
+\item In the emacs window, edit run\_focus.pro and update the {\tt day} and {\tt
+  scan\_num} parameters.
+\item Check the value of focusz in the PAKO display window.
+\item Do not change the {\tt fooffset} values unless you have modified the pako
+  script {\tt focusp.pako}.
+\item Save the file
+\item In the idl session in T2, type {\tt .r run\_focus}
+\item Several plot windows might be on top of eachother
+\item Follow instructions returned by the code in T2
+\end{enumerate}
+
+\subsubsection{Focus\_liss}
+
+\begin{enumerate}
+\item In the emacs window, edit run\_focus\_liss.pro and update the {\tt day}
+  and {\tt scan\_num} parameters. {\b Scan num should be the first of the five
+    scans involved in this analysis}.
+\item Save the file
+\item In the idl session in T2, type {\tt .r run\_focus\_liss}
+\item Several plot windows might be on top of eachother
+\item Follow instructions returned by the code in T2
+\end{enumerate}
+
+\subsubsection{Skydip}
+
+\begin{enumerate}
+\item In the emacs window, edit run\_skydip.pro and update the {\tt day}
+  and {\tt scan\_num} parameters.
+\item Save the file
+\item In the idl session in T2, type {\tt .r run\_skydip}
+\item Several plot windows might be on top of eachother
+\item Follow instructions returned by the code in T2
+\end{enumerate}
+
+
+\subsubsection{OTF\_geometry}
+
+\begin{enumerate}
+\item In the emacs window, edit run\_otf\_geometry.pro and update the {\tt day}
+  and {\tt scan\_num} parameters.
+\item Save the file
+\item In the idl session in T2, type {\tt .r run\_otg\_geometry}
+\item Several plot windows might be on top of eachother
+\item Follow instructions returned by the code in T2
+\end{enumerate}
+
+\subsection{Science scans}
+
+\subsubsection{Total power maps}
+
+All maps (OTF or Lissajou) in total power mode can be reduced by the same script:
+
+\begin{enumerate}
+\item In the emacs window, edit run\_otf\_map.pro and update the {\tt scan\_num}
+  and {\tt day} parameters.
+\item If you're observing a point source, set {\tt diffuse = 0}. If you're
+  observing diffuse emission set {\tt diffuse = 1}.
+\item Save the file
+\item In the idl session in T2, type {\tt .r run\_otf\_map}
+\item Several plot windows might be on top of eachother
+\end{enumerate}
+
+\subsubsection{Polarization maps}
+
+All maps (OTF or Lissajou) in Polarization modes can be reduced by the same script:
+\begin{enumerate}
+\item In the emacs window, edit run\_otf\_polar\_maps.pro and update the {\tt scan\_num}
+  and {\tt day} parameters.
+\item Save the file
+\item In the idl session in T2, type {\tt .r run\_otf\_polar\_maps}
+\item Several plot windows might be on top of eachother
+\end{enumerate}
+
+
+%----------------------------------------------------------------------------------------
+%\begin{thebibliography}{}
+%\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,19 @@
+
+method_num  =  120
+version = "LD"
+iter_min = 0
+iter_max = 4
+ext = 'imcmcall'
+no_mask = 1
+ignore_mask_for_decorr = 1
+silent = 0
+atmb_defilter = 4
+keep_save_files =  1
+atmb_filt_time1mm = 3.00000
+atmb_filt_time2mm = 3.00000
+snr_iter_arr=[ 10, 10, 6, 4, 4]
+keep_save_files_all_iter = 0
+keep_save_files_last_iter = 0
+plot_z = 1
+postscript  =  0
+png  =  0

@@ -1,0 +1,87 @@
+
+# Divers
+string, scan_file, A_2012_06_04_21h25m22_0218_Mars_o.fits, Fichier de scan
+string, a_kidpar_file, 2012_06_04_21h25m22_0218_W2_kidpar.fits, fichier de config
+string, b_kidpar_file, 2012_06_04_21h25m22_0218_W1_kidpar.fits, fichier de config
+
+# parametres de l'amas
+double,   M_500,    2.6e14	        ,Masse de l'amas (en masses solaires)
+double,   z_clust, 1.75                 ,Redshift de l'amas
+double,   P0_clust , 6.4                ,Parametre de pression central (sans unite)
+double,   a_clust , 1.33                ,Parametrisation universelle de pression (chandra: 0.9)
+double,   b_clust , 4.13                ,Parametrisation universelle de pression (chandra: 5)
+double,   c_clust , 0.31                ,Parametrisation universelle de pression (chandra: 0.4)
+double,   rc_clust , 500                ,Parametrisation universelle de pression (en kpc)
+double,   thetac_clust ,58.4             ,Taille angulaire de l'amas (en arcsec)
+
+double,  T_planet , 1.0               ,Temperature d'antenne de la planete en K_RJ a nu1, ~1K_RJ pour Uranus
+
+##################### parametres du scan #############################
+double,   Taille_carte , 1300.0         ,Taille de la carte used to compute the SZ profile (en arcsec)
+double,   nu1 , 140.0                   ,Frequence d'observation 1 (en GHz)
+double,   nu2 , 220.0                   ,Frequence d'observation 2 (en GHz)
+long,     N_sky , 4000                  ,Nombre de pixels sur la longueur de la carte
+double,   Taille_lobe , 15.0            ,Taille du lobe (en arcsec, FWHM)
+
+
+##################### parametres d'atmosphere #########################
+double, alpha_atm ,   0.8               ,Pente du bruit atmospherique (Kolmogorov :2.alpha= 5/3)
+double, cloud_vx, 1.0d0                 ,vitesse de defilement du nuage dans la direction x (azimuth)
+double, cloud_vy, 0.1d0                 ,vitesse de defilement du nuage dans la direction y (elevation)
+double, cloud_map_reso, 0.5d0           ,resolution de la carte de nuages (metres)
+int, disk_convolve, 1                   ,set to 1 to convolve cloud map with telescope diameter
+
+
+##################### parametres du bruit #############################
+double,  T_back , 0.0                  ,Temperature du background en K
+double,  T_CMB , 2.735                 ,Temperature du CMB
+
+double,  prop140 , -670.0              ,Facteur de proportionalité entre temperature et deltaf_0 en Hz/K_rj
+double,  prop220 , -500.0              ,Facteur de proportionalité entre temperature et deltaf_0 en Hz/K_rj
+
+double,  beta_dec , 0.0                ,Pente du bruit de kid decorrelé
+double,  beta_cor , -0.10	       ,Pente du bruit electronique
+double,  f_ref , 1.0                   ,Frequence de reference pour le spectre bruité (arbitraire)
+double,  T_fluc , 1.0		       ,Amplitude des fluctuation de l'atmosphere (en K_RJ) à ajuster à la main                   1.0
+double,  T_kid_dec , 200.0             ,Bruit de kid non correlé (en adu/Hz^0.5) <=> P(f)_RFdIdQ = 2 Hz /sqrt(Hz) integré sur freq_ech/2     200
+double,  T_kid_cor , 400.0             ,Bruit de kid corrélé à f_ref (en [adu]/Hz^0.5) 400
+
+##################### parametres des KIDs #############################
+double,  df_a , 2000.0                   ,Difference de frequence injectée entre deux points (en Hz) matrice A, ce parametre est automatiquement modifier avec regpar
+double,  df_b , 2000.0                   ,Difference de frequence injectée entre deux points (en Hz) matrice B, ce parametre est automatiquement modifier avec regpar
+long,  N_moy , 40                      ,Nombre d'echantillon sur lequel on moyenne les resultats
+#  fkid_0 = 1.5d9 + dindgen(N_kid)*0.5d6 #Peigne des frequences de resonance espacés de 0.5 MHz
+
+double,   Z_0 , 50.0                   ,Voir la modelisation des KIDs
+double,   Q_i , 1e5                    ,On suppose ici que les facteurs de qualité de changent pas
+double,   Q_e , 5e4                    ,en fonction de la puissance optique,
+double,   X_1 , 3.0                    ,et que tous les KIDs sont identiques.
+double,   X_2 , 3.0                    ,De même pour les impedances X_1 X_2
+double,   ampli_line_avg, 3e6          ,Amplitude moyenne de la ligne de transmission
+
+##################### changement d'unité ####################
+#  rc_clust = rc_clust*3.08568e19           #rc_clust en metre
+#  thetac_clust = thetac_clust/3600.0       #thetac_clust en degres
+#  Taille_carte = Taille_carte/3600.0       #Taille_carte en degres
+#  Taille_nika = Taille_nika/3600.0         #Taille_nika en degres
+#  Taille_step = Taille_step/3600.0         #Taille_step en degres
+#  Vitesse_scan = Vitesse_scan/3600.0       #Vitesse_scan en degres
+#  nu1 = nu1*1e9                            #Frequence en Hertz
+#  nu2 = nu2*1e9                            #Frequence en Hertz  
+#  Taille_lobe = Taille_lobe/2.35482/3600.0 #Lobe en degres (FWHM = 2.35482 sigma)
+#  T_kid_dec = T_kid_dec/prop               #T_kid_dec en K/Hz^0.5
+
+##################### parametres additionnelles calculés automatiquement####################
+#  Taille_pix = Taille_carte/N_sky                                                    #Taille en degres d'un pixel = taille_deg_carte/N_skyx
+#  dist_pix = rc_clust*Taille_pix/thetac_clust                                        #distance correspondant a 1 pixel en m au niveau de l'amas
+#  if (N_kid eq 1) then d_kid=1l else d_kid = Taille_nika/(sqrt(N_kid)-1l)/Taille_pix #Distance entre les kids en pixel
+#  x_planet = N_sky/2                                                                 #position de la planete/amas (pixel)
+#  y_planet = N_sky/2                                                                 #position de la planete/amas (pixel)
+#  delta_scan = Taille_step/Taille_pix                                                #ecart deltaY entre les deux aller retour du scan 
+#  lobe = Taille_lobe/Taille_pix                                                      #Rayon du lobe en pixel sur le ciel = taille_deg/taille_pix
+#  fact_sample = Vitesse_scan/freq_ech/Taille_pix*N_ip                                #nombre de pixel par sampling
+#
+#  #dT_rj = (h nu/k/T_cmb)^2 * exp(h nu/T_cmb/k)/(exp(h nu/T_cmb/k)-1)^2 * dT_cmb
+#  prop1 = prop /( (4.799238e-11*nu1/2.725)^2.0 * exp(4.799238e-11*nu1/2.725) / (exp(4.799238e-11*nu1/2.725)-1.0)^2.0 ) #prop convertit en Hz/Tcmb à nu1
+#  prop2 = prop /( (4.799238e-11*nu2/2.725)^2.0 * exp(4.799238e-11*nu2/2.725) / (exp(4.799238e-11*nu2/2.725)-1.0)^2.0 ) #prop convertit en Hz/Tcmb à nu2
+
