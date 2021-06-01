@@ -34,6 +34,7 @@ nk_average_scans, param, scan_list, grid, $
                   output_fits_file=param.project_dir+"/map.fits", $
                   tau_w8=tau_w8, /noplot, info = info, dmm_grid_tot=dmm_grid_tot
 
+
 ;Write info
 nk_info2csv, info, param.project_dir+'/info_'+source+'_v'+ $
              strtrim(param.version, 2)+'.csv'
@@ -80,7 +81,7 @@ endif else begin
                       radius=radius_iter_mask, sz=sz, $
                       title_in='iter '+strtrim(iter,2), $
                       same_mask_at_1_and_2mm=same_mask_at_1_and_2mm, $
-                      param=param
+                      param=param, polar=info.polar
       nk_fits2grid, param.project_dir+"/map_JK.fits", map_jk
       map_jk.iter_mask_1mm = subtract_maps.iter_mask_1mm
       map_jk.iter_mask_2mm = subtract_maps.iter_mask_2mm
