@@ -8,7 +8,8 @@ pro imcm_make_mask, map_file, map_jk_file, subtract_maps, $
                     noplot=noplot, sz=sz, sigma_boost_1mm=sigma_boost_1mm, $
                     sigma_boost_2mm=sigma_boost_2mm, radius_max=radius_max, $
                     title_in=title_in, same_mask_at_1_and_2mm=same_mask_at_1_and_2mm, $
-                    param=param, snr_thres_q=snr_thres_q, snr_thres_u=snr_thres_u
+                    param=param, snr_thres_q=snr_thres_q, snr_thres_u=snr_thres_u, $
+                    polar=polar
 
 if not keyword_set(snr_thres_1mm) then snr_thres_1mm = 6.d0
 if not keyword_set(snr_thres_2mm) then snr_thres_2mm = 6.d0
@@ -41,7 +42,7 @@ for iext=0, n_elements(map_ext)-1 do begin
 
    ;; init mask
    mask       = subtract_maps.xmap*0.d0
-   if iext eq 0 then polar_mask = mask
+   if iext eq 0 and keyword_set(polar) then polar_mask = mask
    
    if max(nhits) gt 0 then begin
       ;; Get rid of poorly sampled edges that could bias the estimates
