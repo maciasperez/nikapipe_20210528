@@ -142,7 +142,7 @@ for iext=0, n_elements(map_ext)-1 do begin
    
    ;; Pass the mask to the output structure
    junk = execute( "subtract_maps.iter_mask_"+strtrim(iext+1,2)+"mm = mask")
-   if defined(polar_mask) then subtract_maps.polar_mask = polar_mask
+   if (defined(polar_mask) and nstokes gt 1) then subtract_maps.polar_mask = polar_mask
    
    ;; Display
    if not keyword_set(noplot) then begin
