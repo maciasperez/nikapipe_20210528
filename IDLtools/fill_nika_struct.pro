@@ -778,8 +778,10 @@ endif else begin
                mm = float( strmid( strtrim( long( day),2),4,2))
                dd = float( strmid( strtrim( long( day),2),6,2))
 
-               ;; approx, no need to account to odd/even months at this stage
-               day_diff = (yy-y)*365. + (mm-m)*30 + dd-d
+               ;; approx, no need to account to odd/even months at
+               ;; this stage
+               
+               day_diff = abs((yy-y)*365. + (mm-m)*30 + dd-d)
 
                w = where( day_diff eq min(day_diff))
                ;; check i'm not too far from a reference pool
