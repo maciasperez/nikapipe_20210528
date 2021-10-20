@@ -248,7 +248,11 @@ pro absolute_calibration, runname, input_kidpar_file, $
 
 
   if nostop lt 1 then stop
-  
+
+  ;; LP 2021, October, 20
+  ;; save the predicted flux of primary calibrators
+  predicted_flux_1mm = th_flux_1mm_run
+  predicted_flux_2mm = th_flux_a2_run
   ;;if keyword_set(output_nickname) then savename = output_nickname[0] else savename = runname[0]+'_baseline'
   corr_file = rdir+"/Absolute_calibration_"+runname[0]+'_baseline.save'
   selected_scan_list = selected_scan_list
@@ -256,7 +260,7 @@ pro absolute_calibration, runname, input_kidpar_file, $
   uranus_nsel  = nuranus
   neptune_ntot = n_elements(where(strupcase(allscan_info.object) eq 'NEPTUNE'))
   neptune_nsel = nneptune
-  save, correction_coef, rms_correction_coef, scan_list, selected_scan_list, uranus_ntot, uranus_nsel, neptune_ntot, neptune_nsel, selection_type, filename=corr_file
+  save, correction_coef, rms_correction_coef, scan_list, selected_scan_list, uranus_ntot, uranus_nsel, neptune_ntot, neptune_nsel, selection_type, predicted_flux_1mm, predicted_flux_2mm, filename=corr_file
   
 
   ;; Aperture photometry
