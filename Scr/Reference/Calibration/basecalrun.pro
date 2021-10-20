@@ -622,9 +622,22 @@ calibration_dir = getenv('NIKA_PLOT_DIR')+'/'+runname[0]
      print, ''
      if strcmp(selection_type, 'lastchance', /fold_case) gt 0 then begin
         print, 'No scan met the nominal selection criteria'
-        print, 'The absolute calibration will be let unchanged w.r.t. whose of the geometry kidpar'
+        ;;print, 'The absolute calibration will be let unchanged
+        ;;w.r.t. whose of the geometry kidpar'
+        if defined(selected_scan_list) then begin
+           print, 'Selected scan list: '
+           print, '[ '
+           for i=0, n_elements(selected_scan_list)-1 do print, selected_scan_list[i]
+           print, ']'
+        endif
         print, ''
      endif
+     if defined(predicted_flux_1mm) then begin
+        print, 'Primary calibrators expected flux for the selected scans [Jy]: '
+        print, '* 1mm: ', predicted_flux_1mm
+        print, '* 2mm: ', predicted_flux_2mm
+        print, ''
+     endif     
      print, 'Calibration Coefficients (Expected flux / Raw flux) :'
      print, '* A1 : ', correction_coef[0], ', rms = ', rms_correction_coef[0] 
      print, '* A3 : ', correction_coef[2], ', rms = ', rms_correction_coef[2] 
@@ -650,7 +663,7 @@ calibration_dir = getenv('NIKA_PLOT_DIR')+'/'+runname[0]
      print, ''
      print, '<!--===========================================================================-->'
      print, ''
-     print, '===   Cross-check using Aperture Photometry    === '
+     print, '====   Cross-check using Aperture Photometry    ==== '
      print, ''
      print, '<!--===========================================================================-->'
      print, 'AP Calibration Coefficients (Expected flux / Raw AP flux) :'
@@ -690,11 +703,11 @@ calibration_dir = getenv('NIKA_PLOT_DIR')+'/'+runname[0]
      print, '* 2mm: ', (secondary.calibration_bias)[3] , ', rms = ', (secondary.calibration_bias_rms)[3]
      print, '<!--===========================================================================-->'
      if do_aperture_photometry gt 0 then begin
-        print, '  Aper. Photom. Calibration bias :'
-        print, '-- A1 : ', (secondary.calibration_bias_AP)[0] , ', rms = ', (secondary.calibration_bias_rms_AP)[0] 
-        print, '-- A3 : ', (secondary.calibration_bias_AP)[1] , ', rms = ', (secondary.calibration_bias_rms_AP)[1] 
-        print, '-- 1mm: ', (secondary.calibration_bias_AP)[2] , ', rms = ', (secondary.calibration_bias_rms_AP)[2]
-        print, '-- 2mm: ', (secondary.calibration_bias_AP)[3] , ', rms = ', (secondary.calibration_bias_rms_AP)[3]
+        print, '==== Aper. Photom. Calibration bias (point source abs. cal.): ===='
+        print, '*A1 : ', (secondary.calibration_bias_AP)[0] , ', rms = ', (secondary.calibration_bias_rms_AP)[0] 
+        print, '*A3 : ', (secondary.calibration_bias_AP)[1] , ', rms = ', (secondary.calibration_bias_rms_AP)[1] 
+        print, '*1mm: ', (secondary.calibration_bias_AP)[2] , ', rms = ', (secondary.calibration_bias_rms_AP)[2]
+        print, '*2mm: ', (secondary.calibration_bias_AP)[3] , ', rms = ', (secondary.calibration_bias_rms_AP)[3]
         print, '<!--===========================================================================-->'
      endif
   endif
