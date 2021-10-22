@@ -1012,6 +1012,8 @@ for iscan = 0, nscan-1 do begin
               file = !nika.off_proc_dir+"/kidpar_N2R45_baseline_25766_part2.fits"
               ;; LP: updated on 2021 May 28 (using pipeline rev 26049)
               file = !nika.off_proc_dir+"/kidpar_N2R45_baseline_26049_part2.fits"
+              ;; LP: updated on 2021 October 22 
+              file = !nika.off_proc_dir+"/kidpar_N2R45_baseline_20210528.fits"
               !nika.ref_det = [3131,818,6017]
            endelse
            
@@ -1037,6 +1039,8 @@ for iscan = 0, nscan-1 do begin
            ;; First baseline calibration
            ;; LP, May 28, 2021
            file = !nika.off_proc_dir+"/kidpar_N2R47_baseline_26116.fits"
+           ;; LP, October 22, 2021
+           file = !nika.off_proc_dir+"/kidpar_N2R47_baseline_20210528.fits"
            !nika.ref_det = [3131,818,6017]
            !nika.numdet_ref_1mm = !nika.ref_det[0]
            !nika.numdet_ref_2mm = !nika.ref_det[1]
@@ -1062,6 +1066,8 @@ for iscan = 0, nscan-1 do begin
            ;; First baseline calibration
            ;; LP, May 28, 2021
            file = !nika.off_proc_dir+"/kidpar_N2R49_baseline_26145.fits"
+           ;; LP, October 22, 2021
+           file = !nika.off_proc_dir+"/kidpar_N2R49_baseline_20210528.fits"
            !nika.ref_det = [3131,818,6017]
            !nika.numdet_ref_1mm = !nika.ref_det[0]
            !nika.numdet_ref_2mm = !nika.ref_det[1]
@@ -1075,6 +1081,8 @@ for iscan = 0, nscan-1 do begin
            ;; Note that uranus.txt has not been updated for this run
            ;; LP, May 28, 2021
            file = !nika.off_proc_dir+"/kidpar_N2R50_baseline_26122.fits"
+           ;; LP, October 22, 2021
+           file = !nika.off_proc_dir+"/kidpar_N2R50_baseline_20210528.fits"
            !nika.ref_det = [3131,818,6017]
            !nika.numdet_ref_1mm = !nika.ref_det[0]
            !nika.numdet_ref_2mm = !nika.ref_det[1]
