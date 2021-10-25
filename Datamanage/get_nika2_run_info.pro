@@ -7,7 +7,7 @@ pro get_nika2_run_info, nika2run_info
      return
   endif
 
-  nruns = 50 ;; to be kept up do date
+  nruns = 55 ;; to be kept up do date
   
   nika2run_info = create_struct('nika2run', '', $
                                 'firstday', '', $
@@ -402,6 +402,47 @@ pro get_nika2_run_info, nika2run_info
   nika2run_info[i].comment   = 'science pool, 4th and 5th NIKA2 2020 Winter semester pool'
   nika2run_info[i].cryorun   = 62
   nika2run_info[i].polar     = 0
+  
+  i=50
+  nika2run_info[i].nika2run  = 'N2R51'
+  nika2run_info[i].firstday  = '20210309'
+  nika2run_info[i].lastday   = '20210323'
+  nika2run_info[i].comment   = 'science pool, 6th and 7th NIKA2 2020 Winter semester pool'
+  nika2run_info[i].cryorun   = 63
+  nika2run_info[i].polar     = 0
+  
+  i=51
+  nika2run_info[i].nika2run  = 'N2R52'
+  nika2run_info[i].firstday  = '20210525'
+  nika2run_info[i].lastday   = '20210601'
+  nika2run_info[i].comment   = '8th NIKA2 2020 Winter semester pool'
+  nika2run_info[i].cryorun   = 64
+  nika2run_info[i].polar     = 0
+
+  i=52
+  nika2run_info[i].nika2run  = 'N2R53'
+  nika2run_info[i].firstday  = '20210708'
+  nika2run_info[i].lastday   = '202107010'
+  nika2run_info[i].comment   = 'technical run'
+  nika2run_info[i].cryorun   = 65
+  nika2run_info[i].polar     = 0
+
+  i=53
+  nika2run_info[i].nika2run  = 'N2R54'
+  nika2run_info[i].firstday  = '20210921'
+  nika2run_info[i].lastday   = '20210925'
+  nika2run_info[i].comment   = 'technical run'
+  nika2run_info[i].cryorun   = 66
+  nika2run_info[i].polar     = 1
+  
+  i=54
+  nika2run_info[i].nika2run  = 'N2R55'
+  nika2run_info[i].firstday  = '20211017'
+  nika2run_info[i].lastday   = '20211109'
+  nika2run_info[i].comment   = 'science pool, 1st and 2nd NIKA2 2021 summer semester pool'
+  nika2run_info[i].cryorun   = 67
+  nika2run_info[i].polar     = 0
+  
   
   for irun = 0, nruns-1 do begin
      nk_get_kidpar_ref, '100', nika2run_info[irun].firstday, info, kidpar_file, $
