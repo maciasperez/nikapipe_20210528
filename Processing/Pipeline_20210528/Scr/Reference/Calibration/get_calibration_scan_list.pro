@@ -93,6 +93,7 @@ pro get_calibration_scan_list, runname, scan_list, $
         ;; the LogBook file is not present in the Datamanage directory
         ;; create a local version
         logbook_dir = getenv('NIKA_PLOT_DIR')+'/'+runname[0]
+        if file_test(logbook_dir, /directory) lt 1 then spawn, 'mkdir '+ logbook_dir
         filesave_out = logbook_dir+'/Log_Iram_tel_'+strupcase(runname[irun])+'_v0.save'
         filecsv_out = logbook_dir+'/Log_Iram_tel_'+strupcase(runname[irun])+'_v0.cvs'
         if file_test(filesave_out) lt 1 then begin
