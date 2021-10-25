@@ -783,15 +783,49 @@ case 1 of
       input_day = day
    end
 
-   ;; do not set the upper limit until the next run, otherwise IDL
-   ;; initialization fails in general
-   long(day) ge 20210309: begin
+   ;; NIKA2 51st run, cryo run 63
+   long(day) ge 20210309 and long(day) le 20210323: begin
       run = '63'
       !nika.raw_acq_dir = !nika.raw_data_dir+"/run63_X"
       !nika.acq_version = 'v3'
       input_day = day
    end
    
+   ;; NIKA2 52nd run, cryo run 64
+   long(day) ge 20210525 and long(day) le 20210601: begin
+      run = '64'
+      !nika.raw_acq_dir = !nika.raw_data_dir+"/run64_X"
+      !nika.acq_version = 'v3'
+      input_day = day
+   end
+   
+   ;; Summer cryo run 65
+   ;; LP, placeholder, accurate dates TBC 
+   long(day) ge 20210602 and long(day) le 20210525: begin
+      run = '65'
+      !nika.raw_acq_dir = !nika.raw_data_dir+"/run65_X"
+      !nika.acq_version = 'v3'
+      input_day = day
+   end
+   
+   ;; NIKA2 54th run, cryo run 66
+   long(day) ge 20210921 and long(day) le 20210925: begin
+      run = '66'
+      !nika.raw_acq_dir = !nika.raw_data_dir+"/run66_X"
+      !nika.acq_version = 'v3'
+      input_day = day
+   end
+   
+   ;; do not set the upper limit until the next run, otherwise IDL
+   ;; initialization fails in general
+   ;; NIKA2 55th run, cryo run 67, 20211026 - 20211109,
+   ;; preparation run on October 17-22                                         
+   long(day) ge 20211017: begin
+      run = '67'
+      !nika.raw_acq_dir = !nika.raw_data_dir+"/run67_X"
+      !nika.acq_version = 'v3'
+      input_day = day
+   end
 
    else: begin
       if not keyword_set(silent) then message, /info, 'No run is set for that date : '+ strtrim(day, 2)
