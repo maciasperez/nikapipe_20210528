@@ -1089,10 +1089,19 @@ for iscan = 0, nscan-1 do begin
         endif
 
         ;; N2R51, cryo run 63, Mar. 2021
-        if myday ge 20210309 then begin
+        if myday ge 20210309 and myday le 20210323 then begin
            ;; Restart with the latest kidpar (NP, Feb. 07th, 2021)
            file = !nika.off_proc_dir+"/kidpar_N2R45_baseline_25766_part2.fits"
            !nika.ref_det = [3131,818,6017]
+           !nika.numdet_ref_1mm = !nika.ref_det[0]
+           !nika.numdet_ref_2mm = !nika.ref_det[1]
+        endif
+        
+        ;; N2R55, cryo run 67, Oct. 2021
+        if myday ge 20211026 then begin
+           ;; Restart with the latest kidpar (NP, Feb. 07th, 2021)
+           file = !nika.off_proc_dir+"/kidpar_20211020s7_v2_LP.fits"
+           !nika.ref_det = [3131,824,6020]
            !nika.numdet_ref_1mm = !nika.ref_det[0]
            !nika.numdet_ref_2mm = !nika.ref_det[1]
         endif
