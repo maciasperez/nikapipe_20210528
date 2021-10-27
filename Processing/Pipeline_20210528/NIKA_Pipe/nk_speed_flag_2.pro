@@ -72,6 +72,7 @@ if param.silent eq 0 then begin
    print, "minmax(data.ofs_el): ", minmax(data.ofs_el)
    print, "med_speed: ", med_speed
 endif
+
 ;;  w = where( data.subscan eq 2)
 ;;  wind, 1, 1, /f, /large
 ;;  !p.multi=[0,1,2]
@@ -238,11 +239,11 @@ if strupcase(info.obs_type) eq  "POINTING" then begin
          i2 = max(w) - ((nw/5)>2) ; integer div on purpose
          w = where( data.subscan eq i and speed gt 0.1 and $
                     data.sample ge data[i1].sample and data.sample le data[i2].sample, nw)
-         
          ;; Slight smooth of speed to improve regularity
-         sm_speed =  smooth(speed, 2)
-         avg_sm_speed = avg( sm_speed[w])
-         w = where( data.subscan eq i and abs(sm_speed-avg_sm_speed) gt param.speed_tol, nw)
+         ;; sm_speed =  smooth(speed, 2)
+         ;; avg_sm_speed = avg( sm_speed[w])
+         ;; w = where( data.subscan eq i and abs(sm_speed-avg_sm_speed) gt param.speed_tol, nw)
+         w = where( data.subscan eq i and ( abs( speed-med_speed) gt param.speed_tol), nw)
          if nw ne 0 then nk_add_flag, data, 11, wsample=w
       endelse
    endfor

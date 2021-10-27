@@ -148,10 +148,7 @@ if param.do_plot ne 0 and strupcase(!nika.acq_version) ne "ISA" then begin
    endif
 endif
 
-
-;;if param.do_plot ne 0 and param.plot_z eq 0 then wshow,!window, icon
-;;= param.iconic ;; LP
-if param.do_plot ne 0 and param.plot_z eq 0 then wshow,!window, icon = param.iconic
 ;; Commented by JFMP. I am not sure of what is the problem
+;if param.do_plot ne 0 and param.plot_z eq 0 then wshow,!window, icon = param.iconic
 
 end
