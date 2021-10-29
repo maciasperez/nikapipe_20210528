@@ -996,6 +996,8 @@ for iscan = 0, nscan-1 do begin
               file = !nika.off_proc_dir+"/kidpar_N2R45_baseline_25766_part1.fits"
               ;; LP: updated on 2021 May 28 (using pipeline rev 26049)
               file = !nika.off_proc_dir+"/kidpar_N2R45_baseline_26049_part1.fits"
+              ;; LP: updated on 2021 October 29 
+              file = !nika.off_proc_dir+"/kidpar_N2R45_baseline_20210528_part1.fits"
               !nika.ref_det = [3131,818,6017]
            endif else begin
               ;; NEW POINTING MODEL
@@ -1013,7 +1015,7 @@ for iscan = 0, nscan-1 do begin
               ;; LP: updated on 2021 May 28 (using pipeline rev 26049)
               file = !nika.off_proc_dir+"/kidpar_N2R45_baseline_26049_part2.fits"
               ;; LP: updated on 2021 October 22 
-              file = !nika.off_proc_dir+"/kidpar_N2R45_baseline_20210528.fits"
+              file = !nika.off_proc_dir+"/kidpar_N2R45_baseline_20210528_part2.fits"
               !nika.ref_det = [3131,818,6017]
            endelse
            
