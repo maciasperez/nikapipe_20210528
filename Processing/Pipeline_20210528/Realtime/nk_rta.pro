@@ -211,12 +211,15 @@ if not keyword_set(param) then begin
    param.plot_dir = !nika.plot_dir+"/Logbook/Scans/"+scan
    spawn, "mkdir -p "+param.plot_dir
 
-;;-------------------------------
-;; Force for now, because no skydip coeffs yet and to save time in get_df_tone...
-   param.do_opacity_correction = 1
-   param.force_opacity_225 = 1
-;   rf = 1
-;;-------------------------------
+   ;; Back to 4, FXD+NP, Nov. 10th, 2021 because 6 gives too high
+   ;; values for high taus
+   param.do_opacity_correction = 4 ; 6
+;; ;;-------------------------------
+;; ;; Force for now, because no skydip coeffs yet and to save time in get_df_tone...
+;;    param.do_opacity_correction = 1
+;;    param.force_opacity_225 = 1
+;; ;   rf = 1
+;; ;;-------------------------------
 
    if keyword_set(freqlow)  then param.freqlow = freqlow
    if keyword_set(freqhigh) then param.freqhigh = freqhigh
