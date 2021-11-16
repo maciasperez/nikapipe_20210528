@@ -1099,14 +1099,26 @@ for iscan = 0, nscan-1 do begin
            !nika.numdet_ref_2mm = !nika.ref_det[1]
         endif
         
-        ;; N2R55, cryo run 67, Oct. 2021
-        if myday ge 20211026 then begin
+        ;; N2R55, cryo run 67, Oct. - Nov. 2021
+        if myday ge 20211026 and myday le 20211109 then begin
            ;; Restart with the latest kidpar (NP, Feb. 07th, 2021)
-           ;; file = !nika.off_proc_dir+"/kidpar_20211020s7_v2_LP.fits"
+            file = !nika.off_proc_dir+"/kidpar_20211020s7_v2_LP.fits"
 
-           ;; with 1st version of (c0,c1) by Xavier
-           file = !nika.off_proc_dir+"/kidpar_N2R55_baseline_26359.fits"
-         
+            ;; with 1st version of (c0,c1) by Xavier
+            ;; NOT AVAILABLE IN KIDPAR DIRECTORY !!!
+            ;; LOST ~ 30 min on Oct. 28 BECAUSE OF THIS !!! 
+          ;;file = !nika.off_proc_dir+"/kidpar_N2R55_baseline_26359.fits"
+
+            file = !nika.off_proc_dir+"/kidpar_N2R55_baseline_26378.fits"
+            
+           !nika.ref_det = [3131,824,6020]
+           !nika.numdet_ref_1mm = !nika.ref_det[0]
+           !nika.numdet_ref_2mm = !nika.ref_det[1]
+        endif
+
+        ;; N2R56, cryo run 68, Oct. 2021
+        if myday ge 20211116 then begin
+           file = !nika.off_proc_dir+"/kidpar_N2R55_baseline_26378.fits"
            !nika.ref_det = [3131,824,6020]
            !nika.numdet_ref_1mm = !nika.ref_det[0]
            !nika.numdet_ref_2mm = !nika.ref_det[1]
