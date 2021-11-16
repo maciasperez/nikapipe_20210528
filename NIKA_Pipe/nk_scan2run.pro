@@ -816,12 +816,21 @@ case 1 of
       input_day = day
    end
    
-   ;; do not set the upper limit until the next run, otherwise IDL
-   ;; initialization fails in general
    ;; NIKA2 55th run, cryo run 67, 20211026 - 20211109,
    ;; preparation run on October 17-22                                         
-   long(day) ge 20211017: begin
+   long(day) ge 20211017 and long(day) le 20211109: begin
       run = '67'
+      !nika.raw_acq_dir = !nika.raw_data_dir+"/run67_X"
+      !nika.acq_version = 'v3'
+      input_day = day
+   end
+
+   ;; do not set the upper limit until the next run, otherwise IDL
+   ;; initialization fails in general
+   ;; NIKA2 56th run, cryo run 68, 20211116 - 20211130
+   ;; preparation run on October 17-22                                         
+   long(day) ge 20211116: begin
+      run = '68'
       !nika.raw_acq_dir = !nika.raw_data_dir+"/run67_X"
       !nika.acq_version = 'v3'
       input_day = day
