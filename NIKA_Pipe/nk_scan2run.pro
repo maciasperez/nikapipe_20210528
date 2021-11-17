@@ -829,9 +829,9 @@ case 1 of
    ;; initialization fails in general
    ;; NIKA2 56th run, cryo run 68, 20211116 - 20211130
    ;; preparation run on October 17-22                                         
-   long(day) ge 20211116: begin
+   long(day) ge 20211115: begin
       run = '68'
-      !nika.raw_acq_dir = !nika.raw_data_dir+"/run67_X"
+      !nika.raw_acq_dir = !nika.raw_data_dir+"/run68_X"
       !nika.acq_version = 'v3'
       input_day = day
    end
